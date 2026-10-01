@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Parking System Agentic AI Factory — Command Console</title>
+  <!-- Google Fonts & Phosphor Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="dark-theme">
+
+  <!-- Master Layout Container: Sidebar + Main App -->
+  <div class="app-layout">
+    
+    <!-- LEFT SIDEBAR NAVIGATION -->
+    <aside class="app-sidebar">
+      <div class="sidebar-brand">
+        <div class="logo-icon"><i class="ph-bold ph-robot"></i></div>
+        <div class="brand-text">
+          <h2>Parking AI</h2>
+          <span class="brand-sub">Agentic AI Factory</span>
+        </div>
+      </div>
+
+      <!-- Quick Guided Tour Button -->
+      <div class="sidebar-tour-box">
+        <button class="btn btn-tour" id="btnStartTour">
+          <i class="ph-bold ph-sparkle"></i> 30-Sec Guided Tour
+        </button>
+      </div>
+
+      <!-- Navigation Links -->
+      <nav class="sidebar-nav">
+        <div class="nav-section-label">PLATFORM NAVIGATION</div>
+        
+        <button class="nav-item active" data-tab="tab-map">
+          <i class="ph-bold ph-map-pin"></i>
+          <div class="nav-text">
+            <span class="nav-title">Live Floor Map</span>
+            <span class="nav-sub">Interactive 3-floor bays</span>
+          </div>
+        </button>
+
+        <button class="nav-item" data-tab="tab-overview">
+          <i class="ph-bold ph-gauge"></i>
+          <div class="nav-text">
+            <span class="nav-title">Overview & Actions</span>
+            <span class="nav-sub">Quick shortcuts & metrics</span>
+          </div>
+        </button>
+
+        <button class="nav-item" data-tab="tab-chat">
+          <i class="ph-bold ph-chat-centered-dots"></i>
+          <div class="nav-text">
+            <span class="nav-title">AI Assistant & DAG</span>
+            <span class="nav-sub">Orchestrator multi-agent chat</span>
+          </div>
+        </button>
+
+        <button class="nav-item" data-tab="tab-gate">
+          <i class="ph-bold ph-camera-plus"></i>
+          <div class="nav-text">
+            <span class="nav-title">ANPR Gate Simulator</span>
+            <span class="nav-sub">Vision camera & barrier test</span>
+          </div>
+        </button>
+
+        <button class="nav-item" data-tab="tab-admin">
+          <i class="ph-bold ph-shield-check"></i>
+          <div class="nav-text">
+            <span class="nav-title">Admin & HITL</span>
+            <span class="nav-sub">Audit logs & human approvals</span>
+          </div>
+          <span class="nav-badge" id="hitlBadge">1</span>
+        </button>
+
+        <button class="nav-item" data-tab="tab-analytics">
+          <i class="ph-bold ph-chart-line-up"></i>
+          <div class="nav-text">
+            <span class="nav-title">Analytics & Reports</span>
+            <span class="nav-sub">Occupancy & revenue insights</span>
+          </div>
+        </button>
+
+        <div class="nav-section-label" style="margin-top:1rem;">SYSTEM ARCHITECTURE</div>
+
+        <button class="nav-item" id="btnOpenPerms">
+          <i class="ph-bold ph-lock-key"></i>
+          <div class="nav-text">
+            <span class="nav-title">Permission Matrix</span>
+            <span class="nav-sub">10 Agents • 17 Tools</span>
+          </div>
+        </button>
+
+        <button class="nav-item" id="btnOpenArchitecture">
+          <i class="ph-bold ph-tree-structure"></i>
+          <div class="nav-text">
+            <span class="nav-title">12-Layer System Spec</span>
+            <span class="nav-sub">Full technical design</span>
+          </div>
+        </button>
+      </nav>
+
+      <!-- Sidebar Footer Status -->
+      <div class="sidebar-footer">
+        <div class="ws-status" id="wsStatus">
+          <span class="status-dot"></span>
+          <span class="status-label">Live Stream Active</span>
+        </div>
+        <button class="btn btn-secondary btn-sm" id="btnResetStore" title="Reset In-Memory DB to default">
+          <i class="ph ph-arrow-counter-clockwise"></i> Reset DB
+        </button>
+      </div>
+    </aside>
+
+    <!-- RIGHT MAIN CONTENT AREA -->
+    <div class="app-main-wrapper">
+      
+      <!-- Sleek Top Header (Clean & Non-Intrusive) -->
+      <header class="top-header">
+        <div class="top-header-left">
+          <h1 class="page-title" id="activePageTitle">Live Parking Floor Map</h1>
+          <p class="page-subtitle" id="activePageSubtitle">Real-time slot telemetry, EV charging status, and 1-click reservations</p>
+        </div>
+
+        <div class="top-header-right">
+          <div class="header-stat-chip">
+            <span class="stat-mini-label">Free Slots:</span>
+            <strong class="text-green" id="headerFreeSlots">-- / 24</strong>
+          </div>
+          <button class="btn btn-primary btn-demo-glow btn-sm" id="btnQuickDemo">
+            <i class="ph-bold ph-play-circle"></i> 1-Click System Demo
+          </button>
+        </div>
+      </header>
+
+      <!-- Dynamic Tab Views (Maximized Full Height) -->
+      <main class="content-body">
+
+        <!-- TAB 1: Live Parking Floor Map (Full Height) -->
+        <div class="tab-content active" id="tab-map">
+          <div class="map-controls-bar">
+            <div class="floor-selector">
+              <button class="btn-floor active" data-floor="1">
+                <i class="ph-bold ph-buildings"></i> Floor 1 (Ground)
+                <span class="floor-pill" id="f1Pill">-- Free</span>
+              </button>
+              <button class="btn-floor" data-floor="2">
+                <i class="ph-bold ph-stairs"></i> Floor 2 (Upper Deck)
+                <span class="floor-pill" id="f2Pill">-- Free</span>
+              </button>
+              <button class="btn-floor" data-floor="3">
+                <i class="ph-bold ph-sun"></i> Floor 3 (Roof Deck)
+                <span class="floor-pill" id="f3Pill">-- Free</span>
+              </button>
+            </div>
+
+            <!-- Slot Filter Chips -->
+            <div class="slot-filters">
+              <span class="filter-label"><i class="ph-bold ph-funnel"></i> Filter:</span>
+              <button class="filter-chip active" data-filter="ALL">All Slots</button>
+              <button class="filter-chip" data-filter="AVAILABLE">Available Only</button>
+              <button class="filter-chip" data-filter="EV">EV Charging</button>
+              <button class="filter-chip" data-filter="ACCESSIBLE">Accessible (ADA)</button>
+            </div>
+
+            <div class="map-legend">
+              <span class="legend-item"><span class="legend-dot status-available"></span> Available</span>
+              <span class="legend-item"><span class="legend-dot status-occupied"></span> Occupied</span>
+              <span class="legend-item"><span class="legend-dot status-reserved"></span> Reserved</span>
+              <span class="legend-item"><span class="legend-dot status-maintenance"></span> Maintenance</span>
+            </div>
+          </div>
+
+          <div class="floor-layout-container">
+            <div class="garage-road entry-road">
+              <span><i class="ph-bold ph-arrow-down"></i> ENTRY DRIVEWAY (GATE NORTH-1)</span>
+            </div>
+            <div class="slots-grid" id="slotsGrid">
+              <!-- Slots rendered dynamically -->
+            </div>
+            <div class="garage-road exit-road">
+              <span>EXIT DRIVEWAY (GATE SOUTH-1) <i class="ph-bold ph-arrow-up"></i></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB: Overview & Quick Actions (Dedicated Tab as requested) -->
+        <div class="tab-content" id="tab-overview">
+          <div class="overview-tab-content">
+            <!-- Fast Action Shortcuts Section -->
+            <div class="overview-section">
+              <h3 class="section-heading"><i class="ph-bold ph-lightning text-cyan"></i> Quick Action Shortcuts</h3>
+              <div class="quick-action-cards">
+                <div class="action-card" data-quick="find_ev">
+                  <div class="card-icon icon-cyan"><i class="ph-bold ph-charging-station"></i></div>
+                  <div class="card-text">
+                    <strong>Find EV Charging</strong>
+                    <span>Search ground slots</span>
+                  </div>
+                </div>
+
+                <div class="action-card" data-quick="reserve_best">
+                  <div class="card-icon icon-purple"><i class="ph-bold ph-calendar-plus"></i></div>
+                  <div class="card-text">
+                    <strong>1-Click Booking</strong>
+                    <span>Secure Floor 2 slot</span>
+                  </div>
+                </div>
+
+                <div class="action-card" data-quick="sim_ingress">
+                  <div class="card-icon icon-green"><i class="ph-bold ph-car-profile"></i></div>
+                  <div class="card-text">
+                    <strong>Simulate Entry</strong>
+                    <span>ANPR gate trigger</span>
+                  </div>
+                </div>
+
+                <div class="action-card" data-quick="sim_egress">
+                  <div class="card-icon icon-amber"><i class="ph-bold ph-receipt"></i></div>
+                  <div class="card-text">
+                    <strong>Exit & Settle</strong>
+                    <span>Calculate final tariff</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+
+            <!-- Metric Statistics Section -->
+            <div class="overview-section" style="margin-top: 1.5rem;">
+              <h3 class="section-heading"><i class="ph-bold ph-gauge text-purple"></i> Garage Status & Key Metrics</h3>
+              <div class="stats-ribbon">
+                <div class="stat-card">
+                  <div class="stat-icon icon-blue"><i class="ph-bold ph-car"></i></div>
+                  <div class="stat-info">
+                    <span class="stat-title">Total Garage Capacity</span>
+                    <span class="stat-value" id="statTotalSlots">24</span>
+                  </div>
+                </div>
+                <div class="stat-card">
+                  <div class="stat-icon icon-green"><i class="ph-bold ph-check-circle"></i></div>
+                  <div class="stat-info">
+                    <span class="stat-title">Available Slots</span>
+                    <span class="stat-value text-green" id="statAvailableSlots">--</span>
+                  </div>
+                </div>
+                <div class="stat-card">
+                  <div class="stat-icon icon-amber"><i class="ph-bold ph-chart-pie"></i></div>
+                  <div class="stat-info">
+                    <span class="stat-title">Occupancy Rate</span>
+                    <span class="stat-value text-amber" id="statOccupancyRate">--%</span>
+                  </div>
+                </div>
+                <div class="stat-card">
+                  <div class="stat-icon icon-purple"><i class="ph-bold ph-calendar-check"></i></div>
+                  <div class="stat-info">
+                    <span class="stat-title">Active Reservations</span>
+                    <span class="stat-value text-purple" id="statReservations">--</span>
+                  </div>
+                </div>
+                <div class="stat-card">
+                  <div class="stat-icon icon-emerald"><i class="ph-bold ph-currency-dollar"></i></div>
+                  <div class="stat-info">
+                    <span class="stat-title">Today's Revenue</span>
+                    <span class="stat-value text-emerald" id="statRevenue">$0.00</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 2: Agentic AI Chat & Live DAG Inspector -->
+        <div class="tab-content" id="tab-chat">
+          
+          <!-- Ready-to-Use Customer Monologue Scripts Bar -->
+          <div class="monologue-scripts-bar">
+            <span class="monologue-header-label"><i class="ph-bold ph-chat-text text-cyan"></i> Customer Monologues (Click to Speak):</span>
+            <div class="monologue-chips-scroll">
+              <button class="monologue-chip" data-prompt="Hi! I need an available parking slot on Floor 2 for 2 hours for my car plate NY-8821.">
+                🏎️ <strong>Rush Driver:</strong> "Reserve slot on Floor 2 for plate NY-8821"
+              </button>
+              <button class="monologue-chip" data-prompt="Is there an EV charging slot available on Floor 2 or Floor 3, and what is the estimated fee?">
+                ⚡ <strong>EV Owner:</strong> "Find EV charging on Floor 2 or Floor 3"
+              </button>
+              <button class="monologue-chip" data-prompt="Find an accessible ADA parking space on Ground Floor for 1 hour.">
+                ♿ <strong>Accessibility:</strong> "Locate accessible ADA spot on Ground Floor"
+              </button>
+              <button class="monologue-chip" data-prompt="How much does parking cost for an SUV for 4 hours during peak hours?">
+                💰 <strong>Tariff Inquiry:</strong> "How much does an SUV cost for 4 hours?"
+              </button>
+              <button class="monologue-chip" data-prompt="Simulate vehicle ABC-1234 entering at Gate North-1">
+                🚗 <strong>Gate Ingress:</strong> "Simulate vehicle ABC-1234 entering Gate North-1"
+              </button>
+              <button class="monologue-chip" data-prompt="Generate daily occupancy and revenue analytics report for management.">
+                📊 <strong>BI Report:</strong> "Generate daily occupancy & revenue analytics"
+              </button>
+            </div>
+          </div>
+
+          <div class="chat-trace-container">
+            <!-- Chat Console Left -->
+            <div class="chat-panel">
+              <div class="chat-header">
+                <div class="chat-title">
+                  <i class="ph-bold ph-sparkle text-cyan"></i> AI Conversational Driver Assistant
+                </div>
+                <span class="agent-count-badge">AI Orchestrator Active</span>
+              </div>
+
+              <div class="chat-messages" id="chatMessages">
+                <div class="message message-system">
+                  <div class="msg-avatar"><i class="ph-bold ph-robot"></i></div>
+                  <div class="msg-body">
+                    <p>👋 Hello! I am the <strong>Central AI Orchestrator</strong>. Choose any <strong>Customer Monologue</strong> above or type your parking request below.</p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="chat-input-bar">
+                <input type="text" id="chatInput" placeholder="Ask Orchestrator or select a monologue script above..." autocomplete="off" />
+                <button class="btn btn-primary" id="btnSendChat">
+                  <i class="ph-bold ph-paper-plane-right"></i> Send
+                </button>
+              </div>
+            </div>
+
+
+            <!-- Live DAG & Execution Trace Inspector Right -->
+            <div class="trace-panel">
+              <div class="trace-header">
+                <div class="trace-title">
+                  <i class="ph-bold ph-tree-structure text-purple"></i> Multi-Agent Execution DAG & Tool Trace
+                </div>
+                <span class="trace-id-badge" id="traceIdBadge">Ready</span>
+              </div>
+
+              <div class="trace-body" id="traceBody">
+                <div class="empty-trace">
+                  <i class="ph-duotone ph-graph"></i>
+                  <p>Send a prompt or select a quick action to inspect real-time Agent Decomposition, Permission Checks, and Tool Invocations.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 3: ANPR Gate & Hardware Simulator -->
+        <div class="tab-content" id="tab-gate">
+          <div class="gate-simulator-grid">
+            <!-- Entry Barrier Section -->
+            <div class="sim-card">
+              <div class="sim-header">
+                <h3><i class="ph-bold ph-video-camera text-green"></i> ANPR Entry Gate (NORTH-1)</h3>
+                <span class="badge-online">CAM-01 ACTIVE</span>
+              </div>
+              <div class="camera-viewport" id="entryCamView">
+                <div class="road-surface">
+                  <div class="road-line"></div>
+                </div>
+
+                <!-- Animated Ingress Vehicle -->
+                <div class="animated-car-wrapper" id="entryCar">
+                  <div class="headlight-beam"></div>
+                  <div class="car-body">
+                    <div class="car-cabin"></div>
+                    <div class="car-plate-badge" id="entryCarPlateBadge">ABC-1234</div>
+                    <div class="car-wheel wheel-front"></div>
+                    <div class="car-wheel wheel-back"></div>
+                  </div>
+                </div>
+
+                <div class="cam-overlay">
+                  <span class="cam-time" id="camTimestamp">LIVE • 30 FPS</span>
+                  <div class="anpr-bounding-box" id="anprBox">
+                    <span class="plate-text" id="anprPlateText">ABC-1234</span>
+                    <span class="anpr-conf">YOLOv8 + OCR: 99.2%</span>
+                  </div>
+                </div>
+
+                <div class="barrier-graphic" id="entryBarrier">
+                  <div class="barrier-pole"></div>
+                  <div class="barrier-arm"></div>
+                </div>
+              </div>
+
+              <div class="sim-controls">
+                <div class="input-group">
+                  <label>Ingress License Plate:</label>
+                  <input type="text" id="simEntryPlate" value="ABC-1234" />
+                </div>
+                <button class="btn btn-success" id="btnSimEntry">
+                  <i class="ph-bold ph-sign-in"></i> Ingress (ANPR Scan)
+                </button>
+              </div>
+            </div>
+
+
+            <!-- Exit Barrier Section -->
+            <div class="sim-card">
+              <div class="sim-header">
+                <h3><i class="ph-bold ph-sign-out text-amber"></i> Automated Exit Gate (SOUTH-1)</h3>
+                <span class="badge-online">CAM-02 ACTIVE</span>
+              </div>
+              <div class="camera-viewport" id="exitCamView">
+                <div class="road-surface">
+                  <div class="road-line"></div>
+                </div>
+
+                <!-- Animated Egress Vehicle -->
+                <div class="animated-car-wrapper" id="exitCar">
+                  <div class="headlight-beam reverse"></div>
+                  <div class="car-body">
+                    <div class="car-cabin"></div>
+                    <div class="car-plate-badge" id="exitCarPlateBadge">ABC-1234</div>
+                    <div class="car-wheel wheel-front"></div>
+                    <div class="car-wheel wheel-back"></div>
+                  </div>
+                </div>
+
+                <div class="cam-overlay">
+                  <span class="cam-time">LIVE • 30 FPS</span>
+                </div>
+                <div class="barrier-graphic" id="exitBarrier">
+                  <div class="barrier-pole"></div>
+                  <div class="barrier-arm"></div>
+                </div>
+              </div>
+
+              <div class="sim-controls">
+                <div class="input-group">
+                  <label>Departing Vehicle Plate:</label>
+                  <input type="text" id="simExitPlate" value="ABC-1234" />
+                </div>
+                <button class="btn btn-primary" id="btnSimExit">
+                  <i class="ph-bold ph-sign-out"></i> Calculate Fee & Egress
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+
+        <!-- TAB 4: Admin & HITL Center -->
+        <div class="tab-content" id="tab-admin">
+          <div class="admin-grid">
+            <!-- Human-in-the-Loop Requests -->
+            <div class="admin-card">
+              <div class="admin-card-header">
+                <h3><i class="ph-bold ph-user-circle-gear text-amber"></i> Human-in-the-Loop (HITL) Staging Queue</h3>
+                <span class="badge-warning">Requires Human Sign-Off</span>
+              </div>
+              <p class="admin-card-desc">High-risk agent operations (refunds, security lockdowns, account suspensions) staged for administrator authorization.</p>
+              <div class="hitl-list" id="hitlList">
+                <!-- HITL items rendered here -->
+              </div>
+            </div>
+
+            <!-- Agent Execution Audit Log -->
+            <div class="admin-card">
+              <div class="admin-card-header">
+                <h3><i class="ph-bold ph-list-dashes text-cyan"></i> Immutable Agent Audit Stream</h3>
+                <span class="badge-neutral">PostgreSQL AGENT_LOGS</span>
+              </div>
+              <div class="audit-log-table-container">
+                <table class="audit-table">
+                  <thead>
+                    <tr>
+                      <th>Timestamp</th>
+                      <th>Agent</th>
+                      <th>Action / Tool</th>
+                      <th>Latency</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody id="auditTableBody">
+                    <!-- Logs rendered here -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 5: Analytics & Reports -->
+        <div class="tab-content" id="tab-analytics">
+          <div class="analytics-container">
+            <div class="analytics-card">
+              <h3><i class="ph-bold ph-chart-donut text-cyan"></i> Real-Time Slot Utilization</h3>
+              <div class="utilization-bars" id="utilizationBars">
+                <!-- Rendered dynamically -->
+              </div>
+            </div>
+            <div class="analytics-card">
+              <h3><i class="ph-bold ph-receipt text-green"></i> Revenue & Tariff Breakdown</h3>
+              <div class="revenue-summary" id="revenueSummary">
+                <div class="rev-row"><span>Base Hourly Rate:</span> <strong>$5.00/hr</strong></div>
+                <div class="rev-row"><span>EV Charging Surcharge:</span> <strong>+25% ($6.25/hr)</strong></div>
+                <div class="rev-row"><span>Peak Period Surcharge:</span> <strong>+30%</strong></div>
+                <div class="rev-row highlight"><span>Total Collected Today:</span> <strong id="analyticsRevenueVal" class="text-green">$15.00</strong></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- 1-Click Slot Reservation Modal -->
+  <div class="modal-overlay" id="reserveModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title">
+          <i class="ph-bold ph-calendar-plus text-green"></i> Reserve Parking Slot
+        </div>
+        <button class="modal-close" id="btnCloseReserveModal"><i class="ph-bold ph-x"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-slot-summary">
+          <div>Selected Slot: <strong id="modalSlotNum" class="text-green">G-03</strong> (<span id="modalSlotType">EV</span>)</div>
+          <div>Location: <span id="modalSlotFloor">Floor 1</span> • Base Rate: <strong>$5.00/hr</strong></div>
+        </div>
+
+        <div class="input-group" style="margin-top:1rem;">
+          <label>License Plate Number:</label>
+          <input type="text" id="modalPlateInput" value="ABC-1234" />
+        </div>
+
+        <div class="input-group" style="margin-top:1rem;">
+          <label>Reservation Duration:</label>
+          <div class="duration-selector">
+            <button class="btn-duration active" data-hours="1">1 Hour</button>
+            <button class="btn-duration" data-hours="2">2 Hours</button>
+            <button class="btn-duration" data-hours="3">3 Hours</button>
+            <button class="btn-duration" data-hours="5">5 Hours</button>
+          </div>
+        </div>
+
+        <div class="modal-pricing-box">
+          <div class="price-row"><span>Estimated Total:</span> <strong id="modalPriceCalc" class="text-green">$5.40 USD</strong></div>
+          <div class="price-sub">Includes 8% tax & instant digital QR Access Pass</div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="btnCancelModal">Cancel</button>
+        <button class="btn btn-success" id="btnConfirmReserve">
+          <i class="ph-bold ph-check-circle"></i> Confirm & Generate QR Pass
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Permissions Matrix Modal -->
+  <div class="modal-overlay" id="permsModal">
+    <div class="modal-card modal-lg">
+      <div class="modal-header">
+        <div class="modal-title">
+          <i class="ph-bold ph-shield-check text-purple"></i> Zero-Trust Agent-to-Tool Permission Matrix (§4)
+        </div>
+        <button class="modal-close" id="btnClosePermsModal"><i class="ph-bold ph-x"></i></button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:1rem;">
+          The AI Orchestrator strictly delegates and calls no business tools directly. Each specialized agent executes within least-privilege tool bounds:
+        </p>
+        <div class="perms-table-container">
+          <table class="perms-table">
+            <thead>
+              <tr>
+                <th>Tool Name</th>
+                <th>Authorized Specialized Agent(s)</th>
+                <th>Security Scope</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td><code>SearchParkingSlots()</code></td><td>AvailabilityAgent, ReservationAgent, CustomerSupportAgent</td><td>Read-Only</td></tr>
+              <tr><td><code>CheckSlotAvailability()</code></td><td>AvailabilityAgent, ReservationAgent, MaintenanceAgent</td><td>Read-Only</td></tr>
+              <tr><td><code>ReserveParkingSlot()</code></td><td>ReservationAgent</td><td>Transactional Write</td></tr>
+              <tr><td><code>CancelReservation()</code></td><td>ReservationAgent, CustomerSupportAgent</td><td>Transactional Write</td></tr>
+              <tr><td><code>CalculateParkingFee()</code></td><td>PaymentAgent, EntryExitAgent, CustomerSupportAgent</td><td>Computation</td></tr>
+              <tr><td><code>ProcessPayment()</code></td><td>PaymentAgent</td><td>Financial / Tokenized</td></tr>
+              <tr><td><code>RegisterVehicleEntry()</code></td><td>EntryExitAgent</td><td>Hardware / Ingress</td></tr>
+              <tr><td><code>RegisterVehicleExit()</code></td><td>EntryExitAgent</td><td>Hardware / Egress</td></tr>
+              <tr><td><code>VerifyVehicle()</code></td><td>EntryExitAgent, SecurityAgent</td><td>Security / ANPR</td></tr>
+              <tr><td><code>AnalyzeCameraFeed()</code></td><td>SecurityAgent, EntryExitAgent</td><td>Computer Vision</td></tr>
+              <tr><td><code>CreateMaintenanceTicket()</code></td><td>MaintenanceAgent</td><td>Field Operations</td></tr>
+              <tr><td><code>GenerateParkingReport()</code></td><td>AnalyticsAgent</td><td>BI & Analytics</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 12-Layer System Architecture Modal -->
+  <div class="modal-overlay" id="archModal">
+    <div class="modal-card modal-lg">
+      <div class="modal-header">
+        <div class="modal-title">
+          <i class="ph-bold ph-tree-structure text-cyan"></i> Authoritative 12-Layer System Architecture (§3)
+        </div>
+        <button class="modal-close" id="btnCloseArchModal"><i class="ph-bold ph-x"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="arch-layer-list">
+          <div class="arch-layer-item"><span>L1: Users & Actors</span><small>Driver App, Admin Dashboard, Attendant Tablet, Hardware Sensors</small></div>
+          <div class="arch-layer-item"><span>L2: Presentation</span><small>Single Page Web App, Real-Time Map, Mobile PWA</small></div>
+          <div class="arch-layer-item"><span>L3: API Gateway & Ingress</span><small>REST API & WebSocket Real-Time Gateway</small></div>
+          <div class="arch-layer-item"><span>L4: Security & Auth</span><small>JWT Tokens, RBAC, Sliding-Window Rate Limiter</small></div>
+          <div class="arch-layer-item highlight"><span>L5: AI Orchestrator Core</span><small>Intent Detection, DAG Task Decomposition, Delegation & State Store</small></div>
+          <div class="arch-layer-item highlight"><span>L6: Specialized AI Agents</span><small>10 Domain Agents (Availability, Reservation, Payment, Security, etc.)</small></div>
+          <div class="arch-layer-item"><span>L7: Agent Tool Layer</span><small>17 Deterministic Sandboxed Tools with Zero-Trust Permission Bounds</small></div>
+          <div class="arch-layer-item"><span>L8: Business Services</span><small>Parking Logic, Billing Engine, Gate Controller, Notifications</small></div>
+          <div class="arch-layer-item"><span>L9: Persistence</span><small>PostgreSQL (ACID), Redis Cache, Timeseries Audit Logs</small></div>
+          <div class="arch-layer-item"><span>L10: IoT & Vision</span><small>ESP32 Ultrasonic Sensors (MQTT) & RTSP OpenCV/YOLOv8 ANPR</small></div>
+          <div class="arch-layer-item"><span>L11: External APIs</span><small>Payment Gateways (Stripe), Multichannel Notifications (Twilio)</small></div>
+          <div class="arch-layer-item"><span>L12: Analytics & BI</span><small>Occupancy Trends, Peak Period Forecasting & Financial Audit</small></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script src="/js/app.js"></script>
+</body>
+</html>
