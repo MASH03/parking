@@ -17,13 +17,16 @@
   <div class="app-layout">
     
     <!-- LEFT SIDEBAR NAVIGATION -->
-    <aside class="app-sidebar">
+    <aside class="app-sidebar" id="appSidebar">
       <div class="sidebar-brand">
         <div class="logo-icon"><i class="ph-bold ph-robot"></i></div>
         <div class="brand-text">
           <h2>Parking AI</h2>
           <span class="brand-sub">Agentic AI Factory</span>
         </div>
+        <button class="btn-sidebar-close" id="btnCloseSidebar" aria-label="Close menu">
+          <i class="ph-bold ph-x"></i>
+        </button>
       </div>
 
       <!-- Quick Guided Tour Button -->
@@ -117,23 +120,31 @@
       </div>
     </aside>
 
+    <!-- Overlay Backdrop for Mobile Sidebar -->
+    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
     <!-- RIGHT MAIN CONTENT AREA -->
     <div class="app-main-wrapper">
       
       <!-- Sleek Top Header (Clean & Non-Intrusive) -->
       <header class="top-header">
         <div class="top-header-left">
-          <h1 class="page-title" id="activePageTitle">Live Parking Floor Map</h1>
-          <p class="page-subtitle" id="activePageSubtitle">Real-time slot telemetry, EV charging status, and 1-click reservations</p>
+          <button class="btn-mobile-menu" id="btnMobileMenuToggle" aria-label="Open navigation menu">
+            <i class="ph-bold ph-list"></i>
+          </button>
+          <div>
+            <h1 class="page-title" id="activePageTitle">Live Parking Floor Map</h1>
+            <p class="page-subtitle" id="activePageSubtitle">Real-time slot telemetry, EV charging status, and 1-click reservations</p>
+          </div>
         </div>
 
         <div class="top-header-right">
           <div class="header-stat-chip">
-            <span class="stat-mini-label">Free Slots:</span>
+            <span class="stat-mini-label">Free:</span>
             <strong class="text-green" id="headerFreeSlots">-- / 24</strong>
           </div>
           <button class="btn btn-primary btn-demo-glow btn-sm" id="btnQuickDemo">
-            <i class="ph-bold ph-play-circle"></i> 1-Click System Demo
+            <i class="ph-bold ph-play-circle"></i> <span class="demo-btn-text">1-Click Demo</span>
           </button>
         </div>
       </header>
@@ -304,8 +315,18 @@
           </div>
 
           <div class="chat-trace-container">
+            <!-- Mobile Segment Switcher for Chat vs DAG -->
+            <div class="mobile-chat-tabs">
+              <button class="btn-mobile-subtab active" id="btnShowChatPanel">
+                <i class="ph-bold ph-chat-centered-dots"></i> Driver Assistant
+              </button>
+              <button class="btn-mobile-subtab" id="btnShowTracePanel">
+                <i class="ph-bold ph-tree-structure"></i> Live DAG & Tools (<span id="mobileStepCount">0</span>)
+              </button>
+            </div>
+
             <!-- Chat Console Left -->
-            <div class="chat-panel">
+            <div class="chat-panel" id="chatPanelEl">
               <div class="chat-header">
                 <div class="chat-title">
                   <i class="ph-bold ph-sparkle text-cyan"></i> AI Conversational Driver Assistant
@@ -332,7 +353,7 @@
 
 
             <!-- Live DAG & Execution Trace Inspector Right -->
-            <div class="trace-panel">
+            <div class="trace-panel" id="tracePanelEl">
               <div class="trace-header">
                 <div class="trace-title">
                   <i class="ph-bold ph-tree-structure text-purple"></i> Multi-Agent Execution DAG & Tool Trace
@@ -511,6 +532,31 @@
       </main>
     </div>
   </div>
+
+  <!-- Mobile Bottom Navigation Bar (Phone UI) -->
+  <nav class="mobile-bottom-nav">
+    <button class="mobile-nav-btn active" data-tab="tab-map">
+      <i class="ph-bold ph-map-pin"></i>
+      <span>Map</span>
+    </button>
+    <button class="mobile-nav-btn" data-tab="tab-overview">
+      <i class="ph-bold ph-gauge"></i>
+      <span>Overview</span>
+    </button>
+    <button class="mobile-nav-btn" data-tab="tab-chat">
+      <i class="ph-bold ph-chat-centered-dots"></i>
+      <span>AI Chat</span>
+    </button>
+    <button class="mobile-nav-btn" data-tab="tab-gate">
+      <i class="ph-bold ph-camera-plus"></i>
+      <span>Gate</span>
+    </button>
+    <button class="mobile-nav-btn" data-tab="tab-admin">
+      <i class="ph-bold ph-shield-check"></i>
+      <span>Admin</span>
+      <span class="mobile-nav-badge" id="mobileHitlBadge">1</span>
+    </button>
+  </nav>
 
   <!-- 1-Click Slot Reservation Modal -->
   <div class="modal-overlay" id="reserveModal">
