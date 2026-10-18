@@ -11,8 +11,7 @@ let selectedHours = 1;
 const PAGE_META = {
   'tab-map': { title: 'Live Parking Floor Map', sub: 'Real-time slot telemetry, EV charging status, and 1-click reservations' },
   'tab-overview': { title: 'Overview & Quick Actions', sub: 'Instant shortcuts, garage capacity metrics, and system highlights' },
-  'tab-chat': { title: 'AI Assistant & Multi-Agent Factory', sub: 'Conversational Orchestrator with real-time DAG task decomposition' },
-  'tab-gate': { title: 'ANPR Gate & Hardware Simulator', sub: 'Computer vision license plate recognition & barrier telemetry' },
+  'tab-chat': { title: 'Live Customer Service Desk', sub: 'Real on-duty parking attendants, 24/7 gate intercom & operational dispute resolution' },
   'tab-admin': { title: 'Admin Command & HITL Center', sub: 'Human-in-the-Loop staging queue & immutable agent audit stream' },
   'tab-analytics': { title: 'Analytics & Revenue BI', sub: 'Garage occupancy forecasting, utilization rate & tariff breakdown' }
 };
@@ -23,7 +22,6 @@ document.addEventListener('DOMContentLoaded', () => {
   initFloorSelector();
   initSlotFilters();
   initChat();
-  initGateSimulator();
   initHITL();
   initResetButton();
   initQuickActions();
@@ -90,8 +88,18 @@ function handleWebSocketMessage(type, payload) {
   } else if (type === 'STORE_RESET') {
     fetchInitialData();
     showToast('Database store reset to initial seed state.');
-  } else if (type === 'HITL_RESOLVED') {
+  } else if (type === 'HITL_RESOLVED' || type === 'HITL_REQUEST_ADDED') {
     fetchHITLQueue();
+  } else if (type === 'SUPPORT_MESSAGE_ADDED') {
+    appendServiceMessage(payload);
+  } else if (type === 'SUPPORT_TICKET_ADDED' || type === 'SUPPORT_TICKET_UPDATED') {
+    fetchSupportOverview();
+  } else if (type === 'STAFF_UPDATED') {
+    fetchSupportOverview();
+  } else if (type === 'AUTH_SESSION_CHANGED') {
+    fetchAuthSession();
+  } else if (type === 'SECURITY_LOG_CREATED') {
+    showToast(`🚨 Security Event: ${payload.description}`, 'alert');
   }
 }
 
@@ -129,6 +137,8 @@ async function fetchInitialData() {
     renderAuditLogs(logsRes);
     renderHITL(hitlRes);
     renderAnalytics();
+    fetchSupportOverview();
+    fetchAuthSession();
   } catch (err) {
     console.error('Initial data fetch error:', err);
   }
@@ -333,19 +343,15 @@ function initQuickActions() {
       const action = card.getAttribute('data-quick');
       if (action === 'find_ev') {
         switchToTab('tab-chat');
-        sendOrchestratorPrompt('Find me an EV charging slot on Ground Floor');
+        sendCustomerServiceMessage('Hi Carlos, could you check available EV charging bays on Floor 1 and 2?');
       } else if (action === 'reserve_best') {
         switchToTab('tab-chat');
-        sendOrchestratorPrompt('Reserve slot F2-04 for plate NY-8821');
-      } else if (action === 'sim_ingress') {
-        switchToTab('tab-gate');
-        document.getElementById('btnSimEntry').click();
-      } else if (action === 'sim_egress') {
-        switchToTab('tab-gate');
-        document.getElementById('btnSimExit').click();
-      } else if (action === 'sim_threat') {
-        switchToTab('tab-gate');
-        document.getElementById('btnSimBlacklist').click();
+        sendCustomerServiceMessage('Hello, please help me hold slot F2-04 for plate NY-8821');
+      } else if (action === 'check_rates') {
+        switchToTab('tab-chat');
+        sendCustomerServiceMessage('What are the hourly parking rates, EV fees, and grace period?');
+      } else if (action === 'view_admin') {
+        switchToTab('tab-admin');
       }
     });
   });
@@ -377,9 +383,9 @@ function initReservationModal() {
     const plate = document.getElementById('modalPlateInput').value.trim() || 'ABC-1234';
     modal.classList.remove('active');
 
-    // Send through AI Orchestrator
+    // Confirm reservation and notify Customer Service
     switchToTab('tab-chat');
-    sendOrchestratorPrompt(`Reserve slot ${selectedModalSlot.slot_number} for plate ${plate} for ${selectedHours} hours`);
+    sendCustomerServiceMessage(`Please confirm reservation of slot ${selectedModalSlot.slot_number} for plate ${plate} for ${selectedHours} hours`);
   });
 }
 
@@ -425,26 +431,20 @@ function initQuickDemoRunner() {
   if (!btnDemo) return;
 
   btnDemo.addEventListener('click', async () => {
-    showToast('🚀 Running 1-Click Multi-Agent System Demo...', 'info');
+    showToast('🚀 Running 1-Click Customer Service & System Demo...', 'info');
     
-    // Step 1: Find Slot
+    // Step 1: Connect to Customer Service
     switchToTab('tab-chat');
-    await sendOrchestratorPrompt('Find me an available parking slot near Floor 1');
+    await sendCustomerServiceMessage('Hi Carlos, I need assistance reserving an EV slot near Floor 1');
     
     // Step 2: Book slot
     await new Promise(r => setTimeout(r, 1800));
-    await sendOrchestratorPrompt('Reserve slot G-04 for plate AUDI-9988');
+    await sendCustomerServiceMessage('Please reserve slot G-04 for plate AUDI-9988');
 
-    // Step 3: Switch to Gate Simulator
-    await new Promise(r => setTimeout(r, 1800));
-    switchToTab('tab-gate');
-    document.getElementById('simEntryPlate').value = 'AUDI-9988';
-    document.getElementById('btnSimEntry').click();
-
-    // Step 4: Switch to Admin
-    await new Promise(r => setTimeout(r, 2200));
+    // Step 3: Switch to Admin
+    await new Promise(r => setTimeout(r, 2000));
     switchToTab('tab-admin');
-    showToast('🎉 Demo complete! Live Agent DAG, Ingress, & Audit logs updated.', 'info');
+    showToast('🎉 Demo complete! Live Customer Service & Attendant logs updated.', 'info');
   });
 }
 
@@ -458,47 +458,42 @@ function initGuidedTour() {
     switchToTab('tab-map');
 
     await new Promise(r => setTimeout(r, 2500));
-    showToast('🤖 Step 2: Chatting with the AI Orchestrator and inspecting DAG traces...', 'info');
+    showToast('🛎️ Step 2: Live Customer Service Desk & Attendant Support...', 'info');
     switchToTab('tab-chat');
-    await sendOrchestratorPrompt('Find an EV slot on Ground Floor');
+    await sendCustomerServiceMessage('Hi Carlos, can you verify if EV charging slot F2-03 is available?');
 
     await new Promise(r => setTimeout(r, 3000));
-    showToast('📷 Step 3: ANPR Camera Barrier Gate Ingress & Departure...', 'info');
-    switchToTab('tab-gate');
-
-    await new Promise(r => setTimeout(r, 2500));
-    showToast('🛡️ Step 4: Human-in-the-Loop admin approvals & compliance logs...', 'info');
+    showToast('🛡️ Step 3: Human-in-the-Loop admin approvals & compliance logs...', 'info');
     switchToTab('tab-admin');
 
     await new Promise(r => setTimeout(r, 2500));
-    showToast('📊 Step 5: Real-time Analytics & Revenue BI...', 'info');
+    showToast('📊 Step 4: Real-time Analytics & Revenue BI...', 'info');
     switchToTab('tab-analytics');
   });
 }
 
-// 11. Agentic AI Chat & Live DAG Inspector
-function initChat() {
+// 11. Real Customer Service & Live Attendant Desk
+let currentSupportOverview = { staff: [], tickets: [], messages: [] };
+let currentAuthSession = null;
+let availableStaffProfiles = [];
+let availableDriverProfiles = [];
+let selectedStaffLoginId = 'ATT-101';
+let selectedDriverLoginId = 'usr-001';
+let selectedTicketPriority = 'NORMAL';
+let intercomTimer = null;
+let intercomSeconds = 0;
+
+function initCustomerServiceDesk() {
   const btnSend = document.getElementById('btnSendChat');
   const chatInput = document.getElementById('chatInput');
 
-  // Customer Monologue Chips (Click to Speak)
-  document.querySelectorAll('.monologue-chip').forEach(chip => {
+  // Service Inquiry Chips (Click to Speak / Ask Attendant)
+  document.querySelectorAll('.service-chip, .monologue-chip').forEach(chip => {
     chip.addEventListener('click', () => {
       const promptText = chip.getAttribute('data-prompt');
       if (promptText) {
         if (chatInput) chatInput.value = promptText;
-        sendOrchestratorPrompt(promptText);
-      }
-    });
-  });
-
-  // Suggestion chips
-  document.querySelectorAll('.suggestion-chip').forEach(chip => {
-    chip.addEventListener('click', () => {
-      const promptText = chip.getAttribute('data-prompt');
-      if (promptText) {
-        if (chatInput) chatInput.value = promptText;
-        sendOrchestratorPrompt(promptText);
+        sendCustomerServiceMessage(promptText);
       }
     });
   });
@@ -514,191 +509,786 @@ function initChat() {
     const text = chatInput.value.trim();
     if (!text) return;
     chatInput.value = '';
-    sendOrchestratorPrompt(text);
+    sendCustomerServiceMessage(text);
+  }
+
+  initAuthLoginModal();
+  initCustomerServiceModals();
+  initDeskActionButtons();
+  initMobileSubtabs();
+}
+
+// Alias for legacy calls
+const initChat = initCustomerServiceDesk;
+const sendOrchestratorPrompt = sendCustomerServiceMessage;
+
+// Fetch Live Support Overview
+async function fetchSupportOverview() {
+  try {
+    const res = await fetch('/api/v1/support/overview');
+    const data = await res.json();
+    currentSupportOverview = data;
+
+    renderStaffRoster(data.staff || []);
+    renderSupportTickets(data.tickets || []);
+    renderSupportMessages(data.messages || []);
+  } catch (err) {
+    console.error('Fetch support overview error:', err);
   }
 }
 
+// Fetch Current Authentication Session
+async function fetchAuthSession() {
+  try {
+    const res = await fetch('/api/v1/auth/session');
+    const data = await res.json();
+    currentAuthSession = data.session || { is_authenticated: false, account_type: 'CUSTOMER', name: 'Guest Driver', vehicle_plate: 'NY-8821' };
+    availableStaffProfiles = data.staff_roster || [];
+    availableDriverProfiles = data.registered_drivers || [];
 
-async function sendOrchestratorPrompt(text) {
-  appendChatMessage('user', text);
-  const loadingId = appendChatMessage('system', `<i class="ph-bold ph-spinner animate-spin"></i> Orchestrator is planning DAG & delegating to agents...`);
+    renderAuthUI();
+    renderLoginModalProfiles();
+  } catch (err) {
+    console.error('Fetch auth session error:', err);
+  }
+}
+
+// Update UI to reflect current auth session (Customer vs Staff Operator mode)
+function renderAuthUI() {
+  const nameEl = document.getElementById('sessionAuthName');
+  const subEl = document.getElementById('sessionAuthSub');
+  const iconEl = document.getElementById('sessionAuthIcon');
+  const pillEl = document.getElementById('sessionAuthPill');
+  const loginBtnLabel = document.getElementById('loginBtnLabel');
+  const opBanner = document.getElementById('operatorModeBanner');
+  const opName = document.getElementById('operatorStaffName');
+  const dutyToggle = document.getElementById('btnDutyToggle');
+  const chatInput = document.getElementById('chatInput');
+
+  if (!currentAuthSession) return;
+
+  const isStaff = currentAuthSession.account_type === 'STAFF';
+
+  if (isStaff) {
+    if (pillEl) pillEl.classList.add('staff-active');
+    if (iconEl) iconEl.innerText = currentAuthSession.avatar || '👨‍💼';
+    if (nameEl) nameEl.innerText = currentAuthSession.name;
+    if (subEl) subEl.innerText = `${currentAuthSession.role} (${currentAuthSession.staff_id || 'Staff'})`;
+    if (loginBtnLabel) loginBtnLabel.innerText = 'Switch Staff';
+    if (opBanner) opBanner.style.display = 'block';
+    if (opName) opName.innerText = `${currentAuthSession.name} (${currentAuthSession.staff_id || 'ATT-101'})`;
+    
+    if (dutyToggle) {
+      const isBreak = currentAuthSession.status === 'ON_BREAK';
+      dutyToggle.innerText = isBreak ? '🟡 On Break' : '🟢 On Duty';
+      if (isBreak) dutyToggle.classList.add('break');
+      else dutyToggle.classList.remove('break');
+    }
+
+    if (chatInput) {
+      chatInput.placeholder = `Reply as Operator ${currentAuthSession.name.split(' ')[0]} (${currentAuthSession.role})...`;
+    }
+  } else {
+    if (pillEl) pillEl.classList.remove('staff-active');
+    if (iconEl) iconEl.innerText = currentAuthSession.avatar || '🚗';
+    if (nameEl) nameEl.innerText = currentAuthSession.name || 'Guest Driver';
+    if (subEl) subEl.innerText = `Plate: ${currentAuthSession.vehicle_plate || 'NY-8821'}`;
+    if (loginBtnLabel) loginBtnLabel.innerText = currentAuthSession.is_authenticated ? 'Switch Driver' : 'Log In / Staff';
+    if (opBanner) opBanner.style.display = 'none';
+
+    if (chatInput) {
+      chatInput.placeholder = `Message Carlos as ${currentAuthSession.name} (${currentAuthSession.vehicle_plate})...`;
+    }
+  }
+
+  // Re-render tickets to reveal Resolve buttons if in staff mode
+  if (currentSupportOverview.tickets) {
+    renderSupportTickets(currentSupportOverview.tickets);
+  }
+}
+
+// Send Message to Real Customer Service Attendant
+async function sendCustomerServiceMessage(text) {
+  const isStaff = currentAuthSession && currentAuthSession.account_type === 'STAFF';
+
+  if (isStaff) {
+    // Message sent by Attendant Operator
+    const staffMsg = {
+      id: `csm-${Date.now()}-staff-direct`,
+      sender: 'staff',
+      staff_name: currentAuthSession.name,
+      staff_role: currentAuthSession.role,
+      location: currentAuthSession.location || 'Ground Booth B-1',
+      avatar: currentAuthSession.avatar || '👨‍💼',
+      badge: 'Operator Reply',
+      text: text,
+      timestamp: new Date().toISOString()
+    };
+    appendServiceMessage(staffMsg);
+
+    try {
+      await fetch('/api/v1/support/message', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: text,
+          user_name: currentAuthSession.name,
+          vehicle_plate: 'STAFF-DESK'
+        })
+      });
+      fetchSupportOverview();
+    } catch (err) {
+      console.error('Operator message error:', err);
+    }
+    return;
+  }
+
+  // Message sent by Customer / Driver
+  const userName = currentAuthSession ? currentAuthSession.name : 'Driver / Guest';
+  const userPlate = currentAuthSession ? currentAuthSession.vehicle_plate : 'NY-8821';
+
+  appendServiceMessage({
+    id: `csm-${Date.now()}-user`,
+    sender: 'user',
+    user_name: userName,
+    text: text,
+    timestamp: new Date().toISOString()
+  });
+
+  // Typing indicator
+  const typingId = appendTypingIndicator('Carlos Ramos (Attendant) is responding...');
 
   try {
-    const response = await fetch('/api/v1/orchestrator/chat', {
+    const res = await fetch('/api/v1/support/message', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: text })
+      body: JSON.stringify({ message: text, user_name: userName, vehicle_plate: userPlate })
     });
-    const trace = await response.json();
+    const result = await res.json();
 
-    removeChatMessage(loadingId);
-    appendChatMessage('system', trace.final_response);
-    renderExecutionTrace(trace);
-    return trace;
+    removeServiceMessage(typingId);
+
+    if (result.staff_message) {
+      appendServiceMessage(result.staff_message);
+    }
+    if (result.tickets) {
+      renderSupportTickets(result.tickets);
+    }
+    if (result.hitl_requests) {
+      renderHITL(result.hitl_requests);
+    }
   } catch (err) {
-    removeChatMessage(loadingId);
-    appendChatMessage('system', `❌ Error: ${err.message}`);
+    removeServiceMessage(typingId);
+    appendServiceMessage({
+      sender: 'staff',
+      staff_name: 'Carlos Ramos',
+      staff_role: 'Head Parking Attendant',
+      avatar: '👨‍💼',
+      badge: 'System Notice',
+      text: `❌ Connection error reaching service booth: ${err.message}. Please call our direct hotline at +1 (800) 555-PARK (Ext 101).`,
+      timestamp: new Date().toISOString()
+    });
   }
 }
 
-function appendChatMessage(sender, text) {
-  const chatMessages = document.getElementById('chatMessages');
+// Render Message Bubble
+function appendServiceMessage(msg) {
+  const container = document.getElementById('chatMessages');
+  if (!container) return;
+
+  const id = msg.id || `msg-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`;
+  const existing = document.getElementById(id);
+  if (existing) return; // avoid duplicate rendering
+
   const msgDiv = document.createElement('div');
-  const id = `msg-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`;
   msgDiv.id = id;
-  msgDiv.className = `message message-${sender}`;
 
-  const icon = sender === 'user' ? 'ph-user' : 'ph-robot';
-  msgDiv.innerHTML = `
-    <div class="msg-avatar"><i class="ph-bold ${icon}"></i></div>
-    <div class="msg-body"><p>${text}</p></div>
-  `;
+  const isUser = msg.sender === 'user';
+  msgDiv.className = `message ${isUser ? 'message-user' : 'message-staff'}`;
 
-  chatMessages.appendChild(msgDiv);
-  chatMessages.scrollTop = chatMessages.scrollHeight;
+  const timeFormatted = new Date(msg.timestamp || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+  if (isUser) {
+    msgDiv.innerHTML = `
+      <div class="msg-avatar"><i class="ph-bold ph-user"></i></div>
+      <div class="msg-body">
+        <div class="msg-meta">
+          <span class="msg-author">${msg.user_name || 'Driver / Guest'}</span>
+          <span class="msg-time">${timeFormatted}</span>
+        </div>
+        <p>${msg.text}</p>
+      </div>
+    `;
+  } else {
+    let actionsHtml = '';
+    if (msg.actions && msg.actions.length > 0) {
+      actionsHtml = msg.actions.map(act => `<span class="action-tag-pill"><i class="ph-bold ph-check-circle"></i> ${act}</span>`).join(' ');
+    }
+
+    msgDiv.innerHTML = `
+      <div class="msg-avatar staff-avatar">${msg.avatar || '👨‍💼'}</div>
+      <div class="msg-body">
+        <div class="msg-meta">
+          <span class="msg-author">${msg.staff_name || 'Carlos Ramos'}</span>
+          <span class="msg-badge">${msg.staff_role || msg.badge || 'Staff On Duty'}</span>
+          <span class="msg-time">${timeFormatted}</span>
+        </div>
+        <p>${msg.text}</p>
+        ${actionsHtml}
+        <div class="msg-quick-actions">
+          <span class="quick-chip" data-quick-text="Is there an available EV charging slot on Floor 1 or 2?">⚡ Inquire EV Slot</span>
+          <span class="quick-chip" data-quick-text="I need assistance lifting barrier arm at Gate North-1">🚨 Gate Assistance</span>
+          <span class="quick-chip" data-quick-text="Can you resend my reservation QR barcode pass?">🎫 Resend Pass</span>
+          <span class="quick-chip" data-quick-text="What are your hourly rates and grace period policies?">ℹ️ Tariff Info</span>
+        </div>
+      </div>
+    `;
+
+    // Hook quick chip clicks inside message
+    msgDiv.querySelectorAll('.quick-chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        const text = chip.getAttribute('data-quick-text');
+        if (text) {
+          const chatInput = document.getElementById('chatInput');
+          if (chatInput) chatInput.value = text;
+          sendCustomerServiceMessage(text);
+        }
+      });
+    });
+  }
+
+  container.appendChild(msgDiv);
+  container.scrollTop = container.scrollHeight;
   return id;
 }
 
-function removeChatMessage(id) {
+// Alias for old appendChatMessage
+const appendChatMessage = (sender, text) => {
+  return appendServiceMessage({
+    sender: sender === 'user' ? 'user' : 'staff',
+    staff_name: 'Carlos Ramos',
+    staff_role: 'Head Parking Attendant',
+    avatar: '👨‍💼',
+    text: text,
+    timestamp: new Date().toISOString()
+  });
+};
+
+function appendTypingIndicator(statusText) {
+  const container = document.getElementById('chatMessages');
+  const id = `typing-${Date.now()}`;
+  const el = document.createElement('div');
+  el.id = id;
+  el.className = 'message message-staff';
+  el.innerHTML = `
+    <div class="msg-avatar staff-avatar">👨‍💼</div>
+    <div class="msg-body" style="display:flex;align-items:center;gap:0.5rem;color:var(--text-secondary);font-size:0.85rem;">
+      <i class="ph-bold ph-spinner animate-spin text-cyan"></i>
+      <span>${statusText}</span>
+    </div>
+  `;
+  container.appendChild(el);
+  container.scrollTop = container.scrollHeight;
+  return id;
+}
+
+function removeServiceMessage(id) {
   const el = document.getElementById(id);
   if (el) el.remove();
 }
+const removeChatMessage = removeServiceMessage;
 
-function renderExecutionTrace(trace) {
-  const traceBody = document.getElementById('traceBody');
-  const traceIdBadge = document.getElementById('traceIdBadge');
-  if (!traceBody) return;
+// Render All Support Messages
+function renderSupportMessages(messages) {
+  const container = document.getElementById('chatMessages');
+  if (!container) return;
+  container.innerHTML = '';
+  messages.forEach(m => appendServiceMessage(m));
+}
 
-  traceIdBadge.innerText = `${trace.trace_id} • ${trace.total_latency_ms}ms`;
+// Render Staff Roster
+function renderStaffRoster(staffList) {
+  const listEl = document.getElementById('staffRosterList');
+  const badgeEl = document.getElementById('staffOnDutyCount');
+  if (!listEl) return;
 
-  traceBody.innerHTML = `
-    <div class="trace-summary-card">
-      <div><strong>Detected Intent:</strong> <span style="color:var(--accent-cyan)">${trace.intent}</span></div>
-      <div><strong>Confidence:</strong> ${(trace.confidence * 100).toFixed(1)}%</div>
-    </div>
-    <div style="font-size:0.8rem; font-weight:700; color:var(--text-muted); text-transform:uppercase;">
-      Execution DAG (${trace.steps.length} Sub-Agent Hops)
-    </div>
-  `;
+  if (badgeEl) badgeEl.innerText = `${staffList.length} Active`;
+  listEl.innerHTML = '';
 
-  trace.steps.forEach((step, idx) => {
-    const stepEl = document.createElement('div');
-    stepEl.className = 'dag-step-item';
-    stepEl.innerHTML = `
-      <div class="dag-step-header">
-        <div style="display:flex; align-items:center; gap:0.5rem;">
-          <span style="font-weight:700; color:var(--text-muted);">#${idx + 1}</span>
-          <span class="agent-badge">${step.agent}</span>
-          <span style="font-size:0.8rem; font-weight:600;">${step.action}</span>
-        </div>
-        <span class="latency-tag">${step.latency_ms}ms</span>
-      </div>
-      <div class="payload-preview">
-        <div>// Request Parameters</div>
-        ${JSON.stringify(step.params || {}, null, 2)}
-        <div style="margin-top:4px;">// Agent Result Payload</div>
-        ${JSON.stringify(step.result?.data || {}, null, 2)}
+  staffList.forEach(s => {
+    const isOnline = s.status === 'ON_DUTY' || s.status === 'ONLINE';
+    const statusText = s.status === 'ON_DUTY' ? '🟢 On Duty' : s.status === 'ONLINE' ? '🟢 Online' : '🟡 On Call';
+    const item = document.createElement('div');
+    item.className = 'roster-item';
+    item.innerHTML = `
+      <div class="roster-avatar">${s.avatar || '👨‍💼'}</div>
+      <div class="roster-info">
+        <span class="roster-name">${s.name}</span>
+        <span class="roster-role">${s.role} • ${s.phone}</span>
+        <span class="roster-status-pill ${isOnline ? 'online' : 'on-call'}">${statusText}</span>
       </div>
     `;
-    traceBody.appendChild(stepEl);
+    listEl.appendChild(item);
   });
 }
 
-// 12. Gate Simulator Handlers with Animated Car Driving Sequences
-function initGateSimulator() {
-  const btnEntry = document.getElementById('btnSimEntry');
-  const btnExit = document.getElementById('btnSimExit');
+// Render Active Support Tickets
+function renderSupportTickets(tickets) {
+  const listEl = document.getElementById('supportTicketList');
+  const badgeEl = document.getElementById('traceIdBadge');
+  const mobCount = document.getElementById('mobileStepCount');
+  if (!listEl) return;
 
-  const entryPlate = document.getElementById('simEntryPlate');
-  const exitPlate = document.getElementById('simExitPlate');
-  const entryBarrier = document.getElementById('entryBarrier');
-  const exitBarrier = document.getElementById('exitBarrier');
+  const openTickets = tickets.filter(t => t.status !== 'RESOLVED');
+  if (badgeEl) badgeEl.innerText = `${openTickets.length} Active Cases`;
+  if (mobCount) mobCount.innerText = openTickets.length;
 
-  const entryCar = document.getElementById('entryCar');
-  const exitCar = document.getElementById('exitCar');
-  const entryPlateBadge = document.getElementById('entryCarPlateBadge');
-  const exitPlateBadge = document.getElementById('exitCarPlateBadge');
+  if (!openTickets.length) {
+    listEl.innerHTML = `<div style="text-align:center;padding:1rem;color:var(--text-muted);font-size:0.8rem;">All customer cases resolved!</div>`;
+    return;
+  }
 
-  if (btnEntry) {
-    btnEntry.addEventListener('click', async () => {
-      const plate = entryPlate.value.trim() || 'ABC-1234';
-      document.getElementById('anprPlateText').innerText = plate;
-      if (entryPlateBadge) entryPlateBadge.innerText = plate;
+  const isStaff = currentAuthSession && currentAuthSession.account_type === 'STAFF';
 
-      // Reset and Drive Car to Gate
-      if (entryCar) {
-        entryCar.className = 'animated-car-wrapper';
-        void entryCar.offsetWidth; // Force reflow
-        entryCar.classList.add('at-gate');
+  listEl.innerHTML = '';
+  openTickets.forEach(t => {
+    const priorityClass = t.priority === 'HIGH' ? 'priority-high' : t.priority === 'MEDIUM' ? 'priority-medium' : 'priority-normal';
+    const timeAgo = Math.max(1, Math.round((Date.now() - new Date(t.created_at).getTime()) / 60000));
+    
+    const card = document.createElement('div');
+    card.className = 'ticket-item';
+    card.innerHTML = `
+      <div class="ticket-head">
+        <span class="ticket-id">${t.ticket_id}</span>
+        <span class="ticket-priority-pill ${priorityClass}">${t.priority}</span>
+      </div>
+      <div class="ticket-sub">${t.subject}</div>
+      <div class="ticket-meta">
+        <span><i class="ph-bold ph-map-pin"></i> ${t.location}</span>
+        <span><i class="ph-bold ph-user"></i> ${t.assigned_to.split(' ')[0]} • ${timeAgo}m ago</span>
+      </div>
+      ${isStaff ? `
+        <div style="margin-top:0.45rem; display:flex; justify-content:flex-end;">
+          <button class="btn-resolve-ticket" data-id="${t.ticket_id}" title="Mark this ticket as resolved">
+            <i class="ph-bold ph-check-circle"></i> Resolve Case
+          </button>
+        </div>
+      ` : ''}
+    `;
+
+    if (isStaff) {
+      const btnResolve = card.querySelector('.btn-resolve-ticket');
+      if (btnResolve) {
+        btnResolve.addEventListener('click', (e) => {
+          e.stopPropagation();
+          resolveTicket(t.ticket_id);
+        });
       }
+    }
 
-      // Call AI Orchestrator
-      const res = await fetch('/api/v1/orchestrator/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: `Simulate vehicle ${plate} entering at Gate North-1` })
-      }).then(r => r.json());
+    listEl.appendChild(card);
+  });
+}
 
-      if (!res.final_response.includes('❌') && !res.final_response.includes('Denied')) {
-        // Barrier Lifts
-        setTimeout(() => {
-          entryBarrier.classList.add('open');
-          // Car Drives Through Gate
-          setTimeout(() => {
-            if (entryCar) entryCar.classList.add('passed-gate');
-            // Lower Barrier after pass
-            setTimeout(() => {
-              entryBarrier.classList.remove('open');
-              // Reset car for next simulation
-              setTimeout(() => {
-                if (entryCar) entryCar.className = 'animated-car-wrapper';
-              }, 1000);
-            }, 1500);
-          }, 800);
-        }, 700);
+// Render Driver & Staff selectable cards in Login Modal
+function renderLoginModalProfiles() {
+  const driverGrid = document.getElementById('quickDriverGrid');
+  const staffGrid = document.getElementById('quickStaffGrid');
 
-        showToast(`🚗 Gate Raised: Vehicle ${plate} ingress registered.`, 'info');
-      }
-      renderExecutionTrace(res);
+  if (driverGrid && availableDriverProfiles.length > 0) {
+    driverGrid.innerHTML = '';
+    availableDriverProfiles.forEach(d => {
+      const card = document.createElement('div');
+      card.className = `quick-auth-card ${selectedDriverLoginId === d.user_id ? 'active' : ''}`;
+      card.innerHTML = `
+        <div class="quick-auth-avatar">🏎️</div>
+        <div class="quick-auth-info">
+          <span class="quick-auth-name">${d.name}</span>
+          <span class="quick-auth-sub">${d.plate} • ${d.model.split(' ')[0]}</span>
+        </div>
+      `;
+      card.addEventListener('click', () => {
+        driverGrid.querySelectorAll('.quick-auth-card').forEach(c => c.classList.remove('active'));
+        card.classList.add('active');
+        selectedDriverLoginId = d.user_id;
+        const nameInput = document.getElementById('loginDriverName');
+        const plateInput = document.getElementById('loginDriverPlate');
+        if (nameInput) nameInput.value = d.name;
+        if (plateInput) plateInput.value = d.plate;
+      });
+      driverGrid.appendChild(card);
     });
   }
 
-  if (btnExit) {
-    btnExit.addEventListener('click', async () => {
-      const plate = exitPlate.value.trim() || 'ABC-1234';
-      if (exitPlateBadge) exitPlateBadge.innerText = plate;
-
-      // Drive Exit Car to Barrier
-      if (exitCar) {
-        exitCar.className = 'animated-car-wrapper';
-        void exitCar.offsetWidth;
-        exitCar.classList.add('at-gate');
-      }
-
-      const res = await fetch('/api/v1/orchestrator/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: `Simulate vehicle ${plate} exiting at Gate South-1` })
-      }).then(r => r.json());
-
-      setTimeout(() => {
-        exitBarrier.classList.add('open');
-        setTimeout(() => {
-          if (exitCar) exitCar.classList.add('passed-gate');
-          setTimeout(() => {
-            exitBarrier.classList.remove('open');
-            setTimeout(() => {
-              if (exitCar) exitCar.className = 'animated-car-wrapper';
-            }, 1000);
-          }, 1500);
-        }, 800);
-      }, 700);
-
-      showToast(`👋 Exit Cleared: Vehicle ${plate} fee settled.`, 'info');
-      renderExecutionTrace(res);
+  if (staffGrid && availableStaffProfiles.length > 0) {
+    staffGrid.innerHTML = '';
+    availableStaffProfiles.forEach(s => {
+      const card = document.createElement('div');
+      card.className = `quick-auth-card staff-card ${selectedStaffLoginId === s.staff_id ? 'active' : ''}`;
+      card.innerHTML = `
+        <div class="quick-auth-avatar">${s.avatar || '👨‍💼'}</div>
+        <div class="quick-auth-info">
+          <span class="quick-auth-name">${s.name}</span>
+          <span class="quick-auth-sub">${s.role} (${s.staff_id})</span>
+        </div>
+      `;
+      card.addEventListener('click', () => {
+        staffGrid.querySelectorAll('.quick-auth-card').forEach(c => c.classList.remove('active'));
+        card.classList.add('active');
+        selectedStaffLoginId = s.staff_id;
+      });
+      staffGrid.appendChild(card);
     });
   }
 }
+
+// Authentication & Role Switcher Modal Logic
+function initAuthLoginModal() {
+  const modal = document.getElementById('serviceLoginModal');
+  const btnOpen = document.getElementById('btnOpenLoginModal');
+  const pillOpen = document.getElementById('sessionAuthPill');
+  const btnClose = document.getElementById('btnCloseLoginModal');
+  const btnCancelDriver = document.getElementById('btnCancelLoginModal');
+  const btnCancelStaff = document.getElementById('btnCancelStaffLogin');
+  const btnLogoutStaff = document.getElementById('btnLogoutStaff');
+  const btnDutyToggle = document.getElementById('btnDutyToggle');
+
+  const tabDriver = document.getElementById('tabDriverLogin');
+  const tabStaff = document.getElementById('tabStaffLogin');
+  const panelDriver = document.getElementById('panelDriverLogin');
+  const panelStaff = document.getElementById('panelStaffLogin');
+
+  const btnSubmitDriver = document.getElementById('btnSubmitDriverLogin');
+  const btnSubmitStaff = document.getElementById('btnSubmitStaffLogin');
+
+  function openModal() {
+    if (modal) {
+      modal.classList.add('active');
+      renderLoginModalProfiles();
+    }
+  }
+
+  function closeModal() {
+    if (modal) modal.classList.remove('active');
+  }
+
+  if (btnOpen) btnOpen.addEventListener('click', openModal);
+  if (pillOpen) pillOpen.addEventListener('click', openModal);
+  [btnClose, btnCancelDriver, btnCancelStaff].forEach(b => {
+    if (b) b.addEventListener('click', closeModal);
+  });
+
+  // Switch between Driver and Staff tabs
+  if (tabDriver && tabStaff && panelDriver && panelStaff) {
+    tabDriver.addEventListener('click', () => {
+      tabDriver.classList.add('active');
+      tabDriver.style.background = 'var(--accent-primary)';
+      tabDriver.style.color = '#fff';
+      tabStaff.classList.remove('active');
+      tabStaff.style.background = 'transparent';
+      tabStaff.style.color = 'var(--text-secondary)';
+      panelDriver.style.display = 'block';
+      panelStaff.style.display = 'none';
+    });
+
+    tabStaff.addEventListener('click', () => {
+      tabStaff.classList.add('active');
+      tabStaff.style.background = 'var(--accent-green)';
+      tabStaff.style.color = '#fff';
+      tabDriver.classList.remove('active');
+      tabDriver.style.background = 'transparent';
+      tabDriver.style.color = 'var(--text-secondary)';
+      panelStaff.style.display = 'block';
+      panelDriver.style.display = 'none';
+    });
+  }
+
+  // Submit Driver Login
+  if (btnSubmitDriver) {
+    btnSubmitDriver.addEventListener('click', async () => {
+      const name = document.getElementById('loginDriverName').value.trim() || 'Alex Johnson';
+      const plate = document.getElementById('loginDriverPlate').value.trim() || 'ABC-1234';
+
+      try {
+        const res = await fetch('/api/v1/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            account_type: 'CUSTOMER',
+            user_id: selectedDriverLoginId,
+            name,
+            plate_number: plate
+          })
+        });
+        const data = await res.json();
+        closeModal();
+        showToast(`Logged in as Driver: ${data.session.name} (${data.session.vehicle_plate})`);
+        fetchAuthSession();
+      } catch (err) {
+        showToast(`Login error: ${err.message}`, 'alert');
+      }
+    });
+  }
+
+  // Submit Staff Login
+  if (btnSubmitStaff) {
+    btnSubmitStaff.addEventListener('click', async () => {
+      const pin = document.getElementById('loginStaffPin').value.trim() || '1234';
+
+      try {
+        const res = await fetch('/api/v1/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            account_type: 'STAFF',
+            staff_id: selectedStaffLoginId,
+            pin
+          })
+        });
+        const data = await res.json();
+        if (data.error) {
+          showToast(data.error, 'alert');
+          return;
+        }
+        closeModal();
+        showToast(`Staff Operator Session Unlocked: ${data.session.name} (${data.session.staff_id})`);
+        fetchAuthSession();
+        fetchSupportOverview();
+      } catch (err) {
+        showToast(`Staff authentication failed: ${err.message}`, 'alert');
+      }
+    });
+  }
+
+  // Logout Staff Mode
+  if (btnLogoutStaff) {
+    btnLogoutStaff.addEventListener('click', async () => {
+      await fetch('/api/v1/auth/logout', { method: 'POST' });
+      showToast('Logged out of Staff Mode. Returned to Driver Session.');
+      fetchAuthSession();
+      fetchSupportOverview();
+    });
+  }
+
+  // Duty Status Toggle
+  if (btnDutyToggle) {
+    btnDutyToggle.addEventListener('click', async () => {
+      if (!currentAuthSession || currentAuthSession.account_type !== 'STAFF') return;
+      const res = await fetch('/api/v1/support/toggle-duty', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ staff_id: currentAuthSession.staff_id })
+      });
+      const data = await res.json();
+      showToast(`Duty Status toggled to: ${data.staff.status}`);
+      fetchAuthSession();
+      fetchSupportOverview();
+    });
+  }
+}
+
+// Resolve Ticket Handler (Staff Operator)
+async function resolveTicket(ticket_id) {
+  try {
+    const res = await fetch('/api/v1/support/resolve-ticket', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        ticket_id,
+        resolved_by: currentAuthSession ? currentAuthSession.name : 'Carlos Ramos'
+      })
+    });
+    const data = await res.json();
+    showToast(`Case #${ticket_id} marked as RESOLVED!`);
+    fetchSupportOverview();
+  } catch (err) {
+    showToast(`Error resolving ticket: ${err.message}`, 'alert');
+  }
+}
+
+// Customer Service Modals (Ticket & Intercom)
+function initCustomerServiceModals() {
+  // Ticket Modal
+  const ticketModal = document.getElementById('ticketModal');
+  const btnOpenTicket = document.getElementById('btnOpenTicketModal');
+  const btnCloseTicket = document.getElementById('btnCloseTicketModal');
+  const btnCancelTicket = document.getElementById('btnCancelTicketModal');
+  const btnSubmitTicket = document.getElementById('btnSubmitTicket');
+
+  if (btnOpenTicket) btnOpenTicket.addEventListener('click', () => ticketModal.classList.add('active'));
+  [btnCloseTicket, btnCancelTicket].forEach(b => {
+    if (b) b.addEventListener('click', () => ticketModal.classList.remove('active'));
+  });
+
+  document.querySelectorAll('.btn-priority-chip').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.btn-priority-chip').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      selectedTicketPriority = btn.getAttribute('data-priority');
+    });
+  });
+
+  if (btnSubmitTicket) {
+    btnSubmitTicket.addEventListener('click', async () => {
+      const subject = document.getElementById('ticketSubject').value.trim();
+      const category = document.getElementById('ticketCategory').value;
+      const location = document.getElementById('ticketLocation').value.trim();
+      const vehicle_plate = document.getElementById('ticketPlate').value.trim();
+      const description = document.getElementById('ticketDesc').value.trim();
+
+      if (!subject) {
+        showToast('Please provide a subject for the ticket', 'alert');
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/v1/support/tickets', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            subject,
+            category,
+            location,
+            vehicle_plate,
+            priority: selectedTicketPriority,
+            description
+          })
+        });
+        const data = await res.json();
+        ticketModal.classList.remove('active');
+        showToast(`Case #${data.ticket.ticket_id} created and dispatched!`);
+        fetchSupportOverview();
+      } catch (err) {
+        showToast(`Error creating ticket: ${err.message}`, 'alert');
+      }
+    });
+  }
+
+  // Intercom Modal
+  const intercomModal = document.getElementById('intercomModal');
+  const btnOpenIntercom = document.getElementById('btnOpenIntercom');
+  const btnTriggerDirect = document.getElementById('btnTriggerDirectIntercom');
+  const btnCloseIntercom = document.getElementById('btnCloseIntercomModal');
+  const btnEndIntercom = document.getElementById('btnEndIntercomCall');
+  const btnIntercomRaiseGate = document.getElementById('btnIntercomRaiseGate');
+
+  function openIntercomCall() {
+    if (!intercomModal) return;
+    intercomModal.classList.add('active');
+    intercomSeconds = 0;
+    const durEl = document.getElementById('intercomDuration');
+    if (durEl) durEl.innerText = '00:00';
+
+    if (intercomTimer) clearInterval(intercomTimer);
+    intercomTimer = setInterval(() => {
+      intercomSeconds++;
+      const m = String(Math.floor(intercomSeconds / 60)).padStart(2, '0');
+      const s = String(intercomSeconds % 60).padStart(2, '0');
+      if (durEl) durEl.innerText = `${m}:${s}`;
+    }, 1000);
+
+    fetch('/api/v1/support/intercom', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ station: 'Gate North-1 Intercom Kiosk' })
+    });
+  }
+
+  function closeIntercomCall() {
+    if (intercomTimer) clearInterval(intercomTimer);
+    intercomTimer = null;
+    if (intercomModal) intercomModal.classList.remove('active');
+    showToast('Intercom call ended.');
+  }
+
+  if (btnOpenIntercom) btnOpenIntercom.addEventListener('click', openIntercomCall);
+  if (btnTriggerDirect) btnTriggerDirect.addEventListener('click', openIntercomCall);
+  if (btnCloseIntercom) btnCloseIntercom.addEventListener('click', closeIntercomCall);
+  if (btnEndIntercom) btnEndIntercom.addEventListener('click', closeIntercomCall);
+
+  if (btnIntercomRaiseGate) {
+    btnIntercomRaiseGate.addEventListener('click', async () => {
+      await fetch('/api/v1/support/gate-override', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ gate_id: 'GATE-NORTH-1', reason: 'Intercom Attendant Verification' })
+      });
+      showToast('🚨 Barrier Gate North-1 raised remotely by Attendant Carlos Ramos!');
+      sendCustomerServiceMessage('Carlos has confirmed remote barrier lift at Gate North-1 via 2-way Intercom.');
+    });
+  }
+}
+
+// Rapid Operational Desk Action Buttons
+function initDeskActionButtons() {
+  const btnGate = document.getElementById('btnActionGateLift');
+  const btnTech = document.getElementById('btnActionDispatchTech');
+  const btnPass = document.getElementById('btnActionCreatePass');
+  const btnRefresh = document.getElementById('btnRefreshTickets');
+
+  if (btnGate) {
+    btnGate.addEventListener('click', async () => {
+      await fetch('/api/v1/support/gate-override', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ gate_id: 'GATE-NORTH-1', reason: 'Manual Desk Override' })
+      });
+      showToast('🚨 Attendant Carlos Ramos remotely raised Barrier Gate North-1!');
+      sendCustomerServiceMessage('Attendant remote override triggered for Gate North-1 barrier arm.');
+    });
+  }
+
+  if (btnTech) {
+    btnTech.addEventListener('click', async () => {
+      await fetch('/api/v1/support/dispatch', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ staff_name: 'Marcus Vance', target_floor: 'Floor 2 EV Bay' })
+      });
+      showToast('👷‍♂️ Field Technician Marcus Vance dispatched to Floor 2 EV Bay!');
+      fetchSupportOverview();
+    });
+  }
+
+  if (btnPass) {
+    btnPass.addEventListener('click', () => {
+      sendCustomerServiceMessage('Please generate a digital emergency exit pass for plate NY-8821');
+    });
+  }
+
+  if (btnRefresh) {
+    btnRefresh.addEventListener('click', () => {
+      fetchSupportOverview();
+      showToast('Active customer support cases refreshed.');
+    });
+  }
+}
+
+// Mobile Chat vs Desk Tab Switcher
+function initMobileSubtabs() {
+  const btnChat = document.getElementById('btnShowChatPanel');
+  const btnDesk = document.getElementById('btnShowTracePanel');
+  const chatPanel = document.getElementById('chatPanelEl');
+  const deskPanel = document.getElementById('tracePanelEl');
+
+  if (btnChat && btnDesk) {
+    btnChat.addEventListener('click', () => {
+      btnChat.classList.add('active');
+      btnDesk.classList.remove('active');
+      if (chatPanel) chatPanel.style.display = 'flex';
+      if (deskPanel) deskPanel.style.display = 'none';
+    });
+
+    btnDesk.addEventListener('click', () => {
+      btnDesk.classList.add('active');
+      btnChat.classList.remove('active');
+      if (chatPanel) chatPanel.style.display = 'none';
+      if (deskPanel) deskPanel.style.display = 'flex';
+    });
+  }
+}
+
+
 
 
 

@@ -57,20 +57,15 @@
         </button>
 
         <button class="nav-item" data-tab="tab-chat">
-          <i class="ph-bold ph-chat-centered-dots"></i>
+          <i class="ph-bold ph-headset"></i>
           <div class="nav-text">
-            <span class="nav-title">AI Assistant & DAG</span>
-            <span class="nav-sub">Orchestrator multi-agent chat</span>
+            <span class="nav-title">Customer Service</span>
+            <span class="nav-sub">Live desk & attendant support</span>
           </div>
+          <span class="nav-badge" style="background:var(--accent-green);color:#fff;font-weight:700;">LIVE</span>
         </button>
 
-        <button class="nav-item" data-tab="tab-gate">
-          <i class="ph-bold ph-camera-plus"></i>
-          <div class="nav-text">
-            <span class="nav-title">ANPR Gate Simulator</span>
-            <span class="nav-sub">Vision camera & barrier test</span>
-          </div>
-        </button>
+
 
         <button class="nav-item" data-tab="tab-admin">
           <i class="ph-bold ph-shield-check"></i>
@@ -223,19 +218,19 @@
                   </div>
                 </div>
 
-                <div class="action-card" data-quick="sim_ingress">
-                  <div class="card-icon icon-green"><i class="ph-bold ph-car-profile"></i></div>
+                <div class="action-card" data-quick="check_rates">
+                  <div class="card-icon icon-green"><i class="ph-bold ph-receipt"></i></div>
                   <div class="card-text">
-                    <strong>Simulate Entry</strong>
-                    <span>ANPR gate trigger</span>
+                    <strong>Check Tariffs</strong>
+                    <span>Rate breakdown & fees</span>
                   </div>
                 </div>
 
-                <div class="action-card" data-quick="sim_egress">
-                  <div class="card-icon icon-amber"><i class="ph-bold ph-receipt"></i></div>
+                <div class="action-card" data-quick="view_admin">
+                  <div class="card-icon icon-amber"><i class="ph-bold ph-shield-check"></i></div>
                   <div class="card-text">
-                    <strong>Exit & Settle</strong>
-                    <span>Calculate final tariff</span>
+                    <strong>Audit & HITL</strong>
+                    <span>Review pending queue</span>
                   </div>
                 </div>
               </div>
@@ -286,185 +281,213 @@
           </div>
         </div>
 
-        <!-- TAB 2: Agentic AI Chat & Live DAG Inspector -->
+        <!-- TAB 2: Live Customer Service Desk & Attendant Support -->
         <div class="tab-content" id="tab-chat">
           
-          <!-- Ready-to-Use Customer Monologue Scripts Bar -->
-          <div class="monologue-scripts-bar">
-            <span class="monologue-header-label"><i class="ph-bold ph-chat-text text-cyan"></i> Customer Monologues (Click to Speak):</span>
+          <!-- Customer Service Rapid Inquiries Bar -->
+          <div class="monologue-scripts-bar service-scripts-bar">
+            <span class="monologue-header-label"><i class="ph-bold ph-headset text-green"></i> Live Customer Desk (Click to Inquire):</span>
             <div class="monologue-chips-scroll">
-              <button class="monologue-chip" data-prompt="Hi! I need an available parking slot on Floor 2 for 2 hours for my car plate NY-8821.">
-                🏎️ <strong>Rush Driver:</strong> "Reserve slot on Floor 2 for plate NY-8821"
+              <button class="monologue-chip service-chip" data-prompt="I am stuck at Gate North-1, the barrier will not raise. Can you help?">
+                🚨 <strong>Barrier Issue:</strong> "Barrier won't raise at Gate North-1"
               </button>
-              <button class="monologue-chip" data-prompt="Is there an EV charging slot available on Floor 2 or Floor 3, and what is the estimated fee?">
-                ⚡ <strong>EV Owner:</strong> "Find EV charging on Floor 2 or Floor 3"
+              <button class="monologue-chip service-chip" data-prompt="Hi, I need assistance with the EV charging bay at slot F2-03. Is a technician available?">
+                ⚡ <strong>EV Charger Help:</strong> "Assistance with EV bay at slot F2-03"
               </button>
-              <button class="monologue-chip" data-prompt="Find an accessible ADA parking space on Ground Floor for 1 hour.">
-                ♿ <strong>Accessibility:</strong> "Locate accessible ADA spot on Ground Floor"
+              <button class="monologue-chip service-chip" data-prompt="I lost my parking ticket / QR pass for plate NY-8821. How do I exit?">
+                🎟️ <strong>Lost Ticket:</strong> "Lost ticket / need exit pass for NY-8821"
               </button>
-              <button class="monologue-chip" data-prompt="How much does parking cost for an SUV for 4 hours during peak hours?">
-                💰 <strong>Tariff Inquiry:</strong> "How much does an SUV cost for 4 hours?"
+              <button class="monologue-chip service-chip" data-prompt="I was delayed at the exit gate for 15 minutes due to a sensor glitch and was charged extra. Can I request a $5 refund?">
+                💰 <strong>Fee Dispute:</strong> "Request $5 refund for sensor exit delay"
               </button>
-              <button class="monologue-chip" data-prompt="Simulate vehicle ABC-1234 entering at Gate North-1">
-                🚗 <strong>Gate Ingress:</strong> "Simulate vehicle ABC-1234 entering Gate North-1"
+              <button class="monologue-chip service-chip" data-prompt="Hi Carlos, I am arriving with an elderly passenger. Do you have an accessible ADA bay and wheelchair ramp available?">
+                ♿ <strong>Accessibility Escort:</strong> "Request ADA accessible bay & escort"
               </button>
-              <button class="monologue-chip" data-prompt="Generate daily occupancy and revenue analytics report for management.">
-                📊 <strong>BI Report:</strong> "Generate daily occupancy & revenue analytics"
+              <button class="monologue-chip service-chip" data-prompt="What are the standard parking rates, EV charging tariffs, and grace period policies?">
+                ℹ️ <strong>Tariff Inquiry:</strong> "Parking rates, EV fees & grace period"
               </button>
             </div>
           </div>
 
-          <div class="chat-trace-container">
-            <!-- Mobile Segment Switcher for Chat vs DAG -->
+          <div class="chat-trace-container customer-service-container">
+            <!-- Mobile Segment Switcher for Chat vs Desk -->
             <div class="mobile-chat-tabs">
               <button class="btn-mobile-subtab active" id="btnShowChatPanel">
-                <i class="ph-bold ph-chat-centered-dots"></i> Driver Assistant
+                <i class="ph-bold ph-headset"></i> Live Attendant Chat
               </button>
               <button class="btn-mobile-subtab" id="btnShowTracePanel">
-                <i class="ph-bold ph-tree-structure"></i> Live DAG & Tools (<span id="mobileStepCount">0</span>)
+                <i class="ph-bold ph-clipboard-text"></i> Support Desk & Tickets (<span id="mobileStepCount">3</span>)
               </button>
             </div>
 
-            <!-- Chat Console Left -->
-            <div class="chat-panel" id="chatPanelEl">
-              <div class="chat-header">
-                <div class="chat-title">
-                  <i class="ph-bold ph-sparkle text-cyan"></i> AI Conversational Driver Assistant
+            <!-- Customer Service Chat Console Left -->
+            <div class="chat-panel service-chat-panel" id="chatPanelEl">
+              <div class="chat-header service-chat-header">
+                <div class="staff-header-profile">
+                  <div class="staff-avatar-badge">
+                    <span class="avatar-icon">👨‍💼</span>
+                    <span class="avatar-pip-online"></span>
+                  </div>
+                  <div class="staff-header-details">
+                    <div class="staff-name-row">
+                      <strong>Carlos Ramos</strong>
+                      <span class="staff-role-pill">Head Attendant</span>
+                    </div>
+                    <span class="staff-station-text">Ground Booth B-1 • On Duty (Avg reply: &lt;1 min)</span>
+                  </div>
                 </div>
-                <span class="agent-count-badge">AI Orchestrator Active</span>
+
+                <div class="service-header-btns">
+                  <!-- Session Auth Status / Login Button -->
+                  <div class="session-auth-pill" id="sessionAuthPill" title="Click to Log In or Switch Account">
+                    <span class="auth-icon" id="sessionAuthIcon">🚗</span>
+                    <div class="auth-pill-text">
+                      <strong id="sessionAuthName">Guest Driver</strong>
+                      <span id="sessionAuthSub">Plate: NY-8821</span>
+                    </div>
+                  </div>
+
+                  <button class="btn btn-sm btn-outline-purple" id="btnOpenLoginModal" title="Log In as Driver or Staff Attendant">
+                    <i class="ph-bold ph-key"></i> <span id="loginBtnLabel">Log In / Staff</span>
+                  </button>
+
+                  <button class="btn btn-sm btn-outline-cyan" id="btnOpenIntercom" title="Direct 2-way audio intercom call to Ground Booth">
+                    <i class="ph-bold ph-phone-call"></i> Call Intercom
+                  </button>
+                  <button class="btn btn-sm btn-primary" id="btnOpenTicketModal" title="Log an official customer service ticket">
+                    <i class="ph-bold ph-plus-circle"></i> Log Ticket
+                  </button>
+                </div>
               </div>
 
-              <div class="chat-messages" id="chatMessages">
-                <div class="message message-system">
-                  <div class="msg-avatar"><i class="ph-bold ph-robot"></i></div>
-                  <div class="msg-body">
-                    <p>👋 Hello! I am the <strong>Central AI Orchestrator</strong>. Choose any <strong>Customer Monologue</strong> above or type your parking request below.</p>
+              <!-- Attendant Operator Mode Banner (active when staff is logged in) -->
+              <div class="operator-mode-banner" id="operatorModeBanner" style="display:none;">
+                <div class="operator-banner-content">
+                  <div class="operator-badge">
+                    <i class="ph-bold ph-shield-check text-green"></i>
+                    <span>Attendant Console Mode:</span>
+                    <strong id="operatorStaffName">Carlos Ramos (ATT-101)</strong>
+                  </div>
+                  <div class="operator-status-toggle">
+                    <button class="btn-duty-toggle active" id="btnDutyToggle" title="Click to toggle Duty / Break">🟢 On Duty</button>
+                    <button class="btn btn-xs btn-outline-danger" id="btnLogoutStaff">
+                      <i class="ph-bold ph-sign-out"></i> Log Out
+                    </button>
                   </div>
                 </div>
               </div>
 
+              <div class="chat-messages" id="chatMessages">
+                <!-- Dynamically populated from /api/v1/support/overview -->
+              </div>
+
               <div class="chat-input-bar">
-                <input type="text" id="chatInput" placeholder="Ask Orchestrator or select a monologue script above..." autocomplete="off" />
+                <input type="text" id="chatInput" placeholder="Message Carlos at Customer Service Desk or click a topic above..." autocomplete="off" />
                 <button class="btn btn-primary" id="btnSendChat">
                   <i class="ph-bold ph-paper-plane-right"></i> Send
                 </button>
               </div>
             </div>
 
-
-            <!-- Live DAG & Execution Trace Inspector Right -->
-            <div class="trace-panel" id="tracePanelEl">
-              <div class="trace-header">
+            <!-- Customer Service Command Desk & Active Tickets Right -->
+            <div class="trace-panel service-desk-panel" id="tracePanelEl">
+              <div class="trace-header service-desk-header">
                 <div class="trace-title">
-                  <i class="ph-bold ph-tree-structure text-purple"></i> Multi-Agent Execution DAG & Tool Trace
+                  <i class="ph-bold ph-shield-star text-amber"></i> Customer Service Operations Desk
                 </div>
-                <span class="trace-id-badge" id="traceIdBadge">Ready</span>
+                <span class="trace-id-badge" id="traceIdBadge">3 Active Cases</span>
               </div>
 
-              <div class="trace-body" id="traceBody">
-                <div class="empty-trace">
-                  <i class="ph-duotone ph-graph"></i>
-                  <p>Send a prompt or select a quick action to inspect real-time Agent Decomposition, Permission Checks, and Tool Invocations.</p>
+              <div class="trace-body service-desk-body" id="traceBody">
+                <!-- Hotline & Intercom Card -->
+                <div class="desk-card hotline-box">
+                  <div class="desk-card-header">
+                    <div>
+                      <h4 class="desk-card-title"><i class="ph-bold ph-broadcast text-cyan"></i> 24/7 Facility Intercom & Hotline</h4>
+                      <p class="desk-card-sub">Immediate connection to on-site attendant personnel</p>
+                    </div>
+                    <span class="badge-live-online"><span class="pulse-dot"></span> 24/7 Monitored</span>
+                  </div>
+                  <div class="hotline-grid">
+                    <div class="hl-item">
+                      <span class="hl-lbl">Emergency Phone</span>
+                      <strong class="hl-val text-cyan">+1 (800) 555-PARK (Ext 101)</strong>
+                    </div>
+                    <div class="hl-item">
+                      <span class="hl-lbl">Intercom Kiosks</span>
+                      <strong class="hl-val">Gate North-1, Gate South-1, Bay F2-03</strong>
+                    </div>
+                    <div class="hl-item">
+                      <span class="hl-lbl">Staff Station</span>
+                      <strong class="hl-val">Ground Booth B-1 (Attendant Carlos Ramos)</strong>
+                    </div>
+                  </div>
+                  <button class="btn btn-sm btn-outline-cyan w-full" id="btnTriggerDirectIntercom" style="margin-top:0.75rem;">
+                    <i class="ph-bold ph-phone-incoming"></i> Connect 2-Way Gate Intercom Call
+                  </button>
+                </div>
+
+                <!-- On-Duty Attendants Roster -->
+                <div class="desk-card roster-box">
+                  <div class="desk-card-header">
+                    <h4 class="desk-card-title"><i class="ph-bold ph-users-three text-green"></i> On-Duty Personnel Roster</h4>
+                    <span class="badge-count" id="staffOnDutyCount">4 Active</span>
+                  </div>
+                  <div class="roster-list" id="staffRosterList">
+                    <!-- Populated dynamically -->
+                  </div>
+                </div>
+
+                <!-- Active Support Tickets Queue -->
+                <div class="desk-card tickets-box">
+                  <div class="desk-card-header">
+                    <div>
+                      <h4 class="desk-card-title"><i class="ph-bold ph-clipboard-text text-purple"></i> Active Support Cases & Dispatches</h4>
+                      <p class="desk-card-sub">Real customer issues logged across the garage</p>
+                    </div>
+                    <button class="btn btn-xs btn-outline-purple" id="btnRefreshTickets">
+                      <i class="ph-bold ph-arrows-clockwise"></i> Refresh
+                    </button>
+                  </div>
+                  <div class="ticket-list" id="supportTicketList">
+                    <!-- Populated dynamically -->
+                  </div>
+                </div>
+
+                <!-- Fast Attendant Operational Actions -->
+                <div class="desk-card actions-box">
+                  <div class="desk-card-header">
+                    <h4 class="desk-card-title"><i class="ph-bold ph-lightning text-amber"></i> Quick Attendant Dispatch Actions</h4>
+                  </div>
+                  <div class="quick-desk-actions">
+                    <button class="btn-desk-action" id="btnActionGateLift">
+                      <div class="desk-action-icon bg-amber-soft"><i class="ph-bold ph-arrow-fat-line-up text-amber"></i></div>
+                      <div class="desk-action-text">
+                        <strong>Remote Gate Lift (North-1)</strong>
+                        <span>Attendant manual barrier override</span>
+                      </div>
+                    </button>
+                    <button class="btn-desk-action" id="btnActionDispatchTech">
+                      <div class="desk-action-icon bg-cyan-soft"><i class="ph-bold ph-wrench text-cyan"></i></div>
+                      <div class="desk-action-text">
+                        <strong>Dispatch Tech Marcus</strong>
+                        <span>Send EV technician to Floor 2 bay</span>
+                      </div>
+                    </button>
+                    <button class="btn-desk-action" id="btnActionCreatePass">
+                      <div class="desk-action-icon bg-green-soft"><i class="ph-bold ph-qr-code text-green"></i></div>
+                      <div class="desk-action-text">
+                        <strong>Issue Replacement Pass</strong>
+                        <span>Generate digital exit barcode</span>
+                      </div>
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- TAB 3: ANPR Gate & Hardware Simulator -->
-        <div class="tab-content" id="tab-gate">
-          <div class="gate-simulator-grid">
-            <!-- Entry Barrier Section -->
-            <div class="sim-card">
-              <div class="sim-header">
-                <h3><i class="ph-bold ph-video-camera text-green"></i> ANPR Entry Gate (NORTH-1)</h3>
-                <span class="badge-online">CAM-01 ACTIVE</span>
-              </div>
-              <div class="camera-viewport" id="entryCamView">
-                <div class="road-surface">
-                  <div class="road-line"></div>
-                </div>
-
-                <!-- Animated Ingress Vehicle -->
-                <div class="animated-car-wrapper" id="entryCar">
-                  <div class="headlight-beam"></div>
-                  <div class="car-body">
-                    <div class="car-cabin"></div>
-                    <div class="car-plate-badge" id="entryCarPlateBadge">ABC-1234</div>
-                    <div class="car-wheel wheel-front"></div>
-                    <div class="car-wheel wheel-back"></div>
-                  </div>
-                </div>
-
-                <div class="cam-overlay">
-                  <span class="cam-time" id="camTimestamp">LIVE • 30 FPS</span>
-                  <div class="anpr-bounding-box" id="anprBox">
-                    <span class="plate-text" id="anprPlateText">ABC-1234</span>
-                    <span class="anpr-conf">YOLOv8 + OCR: 99.2%</span>
-                  </div>
-                </div>
-
-                <div class="barrier-graphic" id="entryBarrier">
-                  <div class="barrier-pole"></div>
-                  <div class="barrier-arm"></div>
-                </div>
-              </div>
-
-              <div class="sim-controls">
-                <div class="input-group">
-                  <label>Ingress License Plate:</label>
-                  <input type="text" id="simEntryPlate" value="ABC-1234" />
-                </div>
-                <button class="btn btn-success" id="btnSimEntry">
-                  <i class="ph-bold ph-sign-in"></i> Ingress (ANPR Scan)
-                </button>
-              </div>
-            </div>
-
-
-            <!-- Exit Barrier Section -->
-            <div class="sim-card">
-              <div class="sim-header">
-                <h3><i class="ph-bold ph-sign-out text-amber"></i> Automated Exit Gate (SOUTH-1)</h3>
-                <span class="badge-online">CAM-02 ACTIVE</span>
-              </div>
-              <div class="camera-viewport" id="exitCamView">
-                <div class="road-surface">
-                  <div class="road-line"></div>
-                </div>
-
-                <!-- Animated Egress Vehicle -->
-                <div class="animated-car-wrapper" id="exitCar">
-                  <div class="headlight-beam reverse"></div>
-                  <div class="car-body">
-                    <div class="car-cabin"></div>
-                    <div class="car-plate-badge" id="exitCarPlateBadge">ABC-1234</div>
-                    <div class="car-wheel wheel-front"></div>
-                    <div class="car-wheel wheel-back"></div>
-                  </div>
-                </div>
-
-                <div class="cam-overlay">
-                  <span class="cam-time">LIVE • 30 FPS</span>
-                </div>
-                <div class="barrier-graphic" id="exitBarrier">
-                  <div class="barrier-pole"></div>
-                  <div class="barrier-arm"></div>
-                </div>
-              </div>
-
-              <div class="sim-controls">
-                <div class="input-group">
-                  <label>Departing Vehicle Plate:</label>
-                  <input type="text" id="simExitPlate" value="ABC-1234" />
-                </div>
-                <button class="btn btn-primary" id="btnSimExit">
-                  <i class="ph-bold ph-sign-out"></i> Calculate Fee & Egress
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
 
 
         <!-- TAB 4: Admin & HITL Center -->
@@ -544,13 +567,10 @@
       <span>Overview</span>
     </button>
     <button class="mobile-nav-btn" data-tab="tab-chat">
-      <i class="ph-bold ph-chat-centered-dots"></i>
-      <span>AI Chat</span>
+      <i class="ph-bold ph-headset"></i>
+      <span>Service</span>
     </button>
-    <button class="mobile-nav-btn" data-tab="tab-gate">
-      <i class="ph-bold ph-camera-plus"></i>
-      <span>Gate</span>
-    </button>
+
     <button class="mobile-nav-btn" data-tab="tab-admin">
       <i class="ph-bold ph-shield-check"></i>
       <span>Admin</span>
@@ -668,6 +688,193 @@
           <div class="arch-layer-item"><span>L11: External APIs</span><small>Payment Gateways (Stripe), Multichannel Notifications (Twilio)</small></div>
           <div class="arch-layer-item"><span>L12: Analytics & BI</span><small>Occupancy Trends, Peak Period Forecasting & Financial Audit</small></div>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Customer Support Ticket Modal -->
+  <div class="modal-overlay" id="ticketModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title">
+          <i class="ph-bold ph-ticket text-cyan"></i> Log Customer Support Case
+        </div>
+        <button class="modal-close" id="btnCloseTicketModal"><i class="ph-bold ph-x"></i></button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-desc" style="color:var(--text-secondary);font-size:0.85rem;margin-bottom:1rem;">
+          Submit an incident or service request directly to the Ground Floor Attendant Desk. An on-duty technician or manager will be dispatched immediately.
+        </p>
+
+        <div class="form-group" style="margin-bottom:1rem;">
+          <label style="display:block;font-size:0.8rem;color:var(--text-secondary);margin-bottom:0.35rem;">Issue Category</label>
+          <select id="ticketCategory" class="modal-input" style="width:100%;padding:0.6rem 0.8rem;background:rgba(15,23,42,0.8);border:1px solid var(--border-color);border-radius:var(--radius-sm);color:#fff;">
+            <option value="GATE_BARRIER">🚨 Gate Barrier Ingress / Egress Lockout</option>
+            <option value="EV_CHARGER">⚡ EV Charging Cable or Plug Fault</option>
+            <option value="BILLING_DISPUTE">💰 Fee Dispute / Refund Request</option>
+            <option value="LOST_TICKET">🎟️ Lost Ticket / Missing QR Pass</option>
+            <option value="ADA_ESCORT">♿ ADA Accessibility Ramp Escort</option>
+            <option value="SLOT_OCCUPIED">🚗 Reserved Bay Occupied by Other Car</option>
+            <option value="GENERAL_INQUIRY">ℹ️ General Facility Inquiry</option>
+          </select>
+        </div>
+
+        <div class="form-row" style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-bottom:1rem;">
+          <div class="form-group">
+            <label style="display:block;font-size:0.8rem;color:var(--text-secondary);margin-bottom:0.35rem;">Location / Bay</label>
+            <input type="text" id="ticketLocation" class="modal-input" placeholder="e.g. Gate North-1, Bay F2-03" value="Gate North-1" style="width:100%;padding:0.6rem 0.8rem;background:rgba(15,23,42,0.8);border:1px solid var(--border-color);border-radius:var(--radius-sm);color:#fff;" />
+          </div>
+          <div class="form-group">
+            <label style="display:block;font-size:0.8rem;color:var(--text-secondary);margin-bottom:0.35rem;">Vehicle Plate</label>
+            <input type="text" id="ticketPlate" class="modal-input" placeholder="e.g. NY-8821" value="NY-8821" style="width:100%;padding:0.6rem 0.8rem;background:rgba(15,23,42,0.8);border:1px solid var(--border-color);border-radius:var(--radius-sm);color:#fff;" />
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom:1rem;">
+          <label style="display:block;font-size:0.8rem;color:var(--text-secondary);margin-bottom:0.35rem;">Priority Level</label>
+          <div class="ticket-priority-selector" style="display:flex;gap:0.5rem;">
+            <button type="button" class="btn-priority-chip active" data-priority="NORMAL">Normal</button>
+            <button type="button" class="btn-priority-chip" data-priority="MEDIUM">Medium</button>
+            <button type="button" class="btn-priority-chip" data-priority="HIGH">High (Urgent)</button>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom:1.25rem;">
+          <label style="display:block;font-size:0.8rem;color:var(--text-secondary);margin-bottom:0.35rem;">Summary / Subject</label>
+          <input type="text" id="ticketSubject" class="modal-input" placeholder="Describe the issue briefly..." value="Barrier won't raise upon exit scan" style="width:100%;padding:0.6rem 0.8rem;background:rgba(15,23,42,0.8);border:1px solid var(--border-color);border-radius:var(--radius-sm);color:#fff;margin-bottom:0.5rem;" />
+          <textarea id="ticketDesc" rows="3" placeholder="Additional details (optional)..." style="width:100%;padding:0.6rem 0.8rem;background:rgba(15,23,42,0.8);border:1px solid var(--border-color);border-radius:var(--radius-sm);color:#fff;font-family:inherit;font-size:0.85rem;resize:none;">Customer scanned ticket, reader light stayed red. Waiting at Gate North-1.</textarea>
+        </div>
+
+        <div class="modal-actions" style="display:flex;justify-content:flex-end;gap:0.75rem;">
+          <button class="btn btn-secondary" id="btnCancelTicketModal">Cancel</button>
+          <button class="btn btn-primary" id="btnSubmitTicket">
+            <i class="ph-bold ph-check"></i> Dispatch & Log Case
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2-Way Gate / Attendant Intercom Call Modal -->
+  <div class="modal-overlay" id="intercomModal">
+    <div class="modal-card intercom-card-modal" style="max-width:440px;text-align:center;">
+      <div class="modal-header" style="border:none;padding-bottom:0;">
+        <button class="modal-close" id="btnCloseIntercomModal"><i class="ph-bold ph-x"></i></button>
+      </div>
+      <div class="intercom-modal-body" style="padding:1.5rem 2rem 2rem;">
+        <div class="intercom-audio-avatar">
+          <div class="audio-wave wave-1"></div>
+          <div class="audio-wave wave-2"></div>
+          <div class="intercom-avatar-center">👨‍💼</div>
+        </div>
+
+        <h3 style="font-size:1.25rem;margin-top:1rem;color:#fff;">Carlos Ramos</h3>
+        <p style="color:var(--accent-green);font-size:0.85rem;font-weight:600;margin-top:0.25rem;">
+          <span class="pulse-dot" style="display:inline-block;margin-right:4px;"></span> 2-Way Audio Channel Active
+        </p>
+
+        <div class="intercom-call-details" style="margin:1.25rem 0;background:rgba(255,255,255,0.03);padding:0.85rem;border-radius:var(--radius-md);border:1px solid var(--border-color);">
+          <div style="font-size:0.8rem;color:var(--text-secondary);">Station: <strong>Ground Floor Attendant Booth B-1</strong></div>
+          <div style="font-size:0.8rem;color:var(--text-secondary);margin-top:0.35rem;">Call Duration: <strong id="intercomDuration" style="color:var(--accent-cyan);font-family:var(--font-mono);">00:08</strong></div>
+          <div class="intercom-live-quote" style="margin-top:0.75rem;padding:0.6rem;background:rgba(6,182,212,0.1);border-left:3px solid var(--accent-cyan);border-radius:4px;font-size:0.85rem;color:var(--text-primary);text-align:left;">
+            <em>"Hello! Carlos speaking from the Ground Booth. I see you on our gate camera — how can I assist you right now?"</em>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:0.75rem;justify-content:center;">
+          <button class="btn btn-outline-cyan btn-sm" id="btnIntercomRaiseGate">
+            <i class="ph-bold ph-arrow-fat-line-up"></i> Lift Barrier Now
+          </button>
+          <button class="btn btn-danger btn-sm" id="btnEndIntercomCall">
+            <i class="ph-bold ph-phone-slash"></i> End Intercom Call
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Customer Service Authentication & Role Switcher Modal -->
+  <div class="modal-overlay" id="serviceLoginModal">
+    <div class="modal-card" style="max-width:520px;">
+      <div class="modal-header">
+        <div class="modal-title">
+          <i class="ph-bold ph-user-circle-gear text-cyan"></i> Customer Service Portal Login
+        </div>
+        <button class="modal-close" id="btnCloseLoginModal"><i class="ph-bold ph-x"></i></button>
+      </div>
+
+      <div class="modal-body" style="padding:1.25rem 1.5rem;">
+        <p class="modal-desc" style="color:var(--text-secondary);font-size:0.85rem;margin-bottom:1rem;">
+          Authenticate as a registered driver for personalized assistance, or log in to the <strong>Staff Attendant Operator Console</strong> to manage incoming cases and gate overrides.
+        </p>
+
+        <!-- Login Tabs: Driver vs Staff -->
+        <div class="login-tab-switcher">
+          <button type="button" class="btn-login-tab active" id="tabDriverLogin">
+            <i class="ph-bold ph-car-profile"></i> Customer / Driver
+          </button>
+          <button type="button" class="btn-login-tab" id="tabStaffLogin">
+            <i class="ph-bold ph-shield-star"></i> Staff Operator
+          </button>
+        </div>
+
+        <!-- Panel 1: Customer / Driver Login -->
+        <div class="login-panel" id="panelDriverLogin">
+          <div style="font-size:0.8rem;color:var(--text-secondary);margin-bottom:0.6rem;font-weight:600;">
+            1-Click Demo Driver Accounts:
+          </div>
+          <div class="quick-user-select-grid" id="quickDriverGrid">
+            <!-- Populated dynamically (Alex Johnson & Maria Chen) -->
+          </div>
+
+          <div class="divider-text">
+            <span>OR CUSTOM DRIVER DETAILS</span>
+          </div>
+
+          <div class="form-group" style="margin-bottom:0.85rem;">
+            <label style="display:block;font-size:0.8rem;color:var(--text-secondary);margin-bottom:0.35rem;">Full Name / Driver Name</label>
+            <input type="text" id="loginDriverName" class="modal-input" placeholder="e.g. Alex Johnson or John Doe" value="Alex Johnson" style="width:100%;padding:0.6rem 0.8rem;background:rgba(15,23,42,0.8);border:1px solid var(--border-color);border-radius:var(--radius-sm);color:#fff;" />
+          </div>
+
+          <div class="form-group" style="margin-bottom:1.25rem;">
+            <label style="display:block;font-size:0.8rem;color:var(--text-secondary);margin-bottom:0.35rem;">Vehicle License Plate</label>
+            <input type="text" id="loginDriverPlate" class="modal-input" placeholder="e.g. ABC-1234 or NY-8821" value="ABC-1234" style="width:100%;padding:0.6rem 0.8rem;background:rgba(15,23,42,0.8);border:1px solid var(--border-color);border-radius:var(--radius-sm);color:#fff;" />
+          </div>
+
+          <div style="display:flex;justify-content:flex-end;gap:0.75rem;">
+            <button class="btn btn-secondary" id="btnCancelLoginModal">Cancel</button>
+            <button class="btn btn-primary" id="btnSubmitDriverLogin">
+              <i class="ph-bold ph-sign-in"></i> Log In as Driver
+            </button>
+          </div>
+        </div>
+
+        <!-- Panel 2: Staff Attendant Login -->
+        <div class="login-panel" id="panelStaffLogin" style="display:none;">
+          <div style="font-size:0.8rem;color:var(--text-secondary);margin-bottom:0.6rem;font-weight:600;">
+            Select Staff Attendant Profile:
+          </div>
+
+          <div class="quick-staff-select-grid" id="quickStaffGrid">
+            <!-- Populated dynamically (Carlos Ramos, Elena Rostova, Marcus Vance, Sarah Connor) -->
+          </div>
+
+          <div class="form-group" style="margin-bottom:1.25rem;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.35rem;">
+              <label style="font-size:0.8rem;color:var(--text-secondary);">Attendant Security PIN</label>
+              <span style="font-size:0.75rem;color:var(--accent-cyan);font-weight:600;">Demo PIN: <strong>1234</strong></span>
+            </div>
+            <input type="password" id="loginStaffPin" class="modal-input" placeholder="Enter 4-digit PIN (default: 1234)" value="1234" maxlength="4" style="width:100%;padding:0.6rem 0.8rem;background:rgba(15,23,42,0.8);border:1px solid var(--border-color);border-radius:var(--radius-sm);color:#fff;font-family:var(--font-mono);letter-spacing:3px;" />
+          </div>
+
+          <div style="display:flex;justify-content:flex-end;gap:0.75rem;">
+            <button class="btn btn-secondary" id="btnCancelStaffLogin">Cancel</button>
+            <button class="btn btn-primary" id="btnSubmitStaffLogin" style="background:var(--accent-green);border-color:var(--accent-green);">
+              <i class="ph-bold ph-shield-check"></i> Unlock Staff Operator Mode
+            </button>
+          </div>
+        </div>
+
       </div>
     </div>
   </div>

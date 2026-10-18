@@ -135,7 +135,154 @@ class ParkingStore {
       }
     ];
 
+    // Real Customer Service On-Duty Personnel
+    this.support_staff = [
+      {
+        id: 'stf-001',
+        staff_id: 'ATT-101',
+        pin: '1234',
+        name: 'Carlos Ramos',
+        role: 'Head Parking Attendant',
+        location: 'Ground Booth B-1',
+        status: 'ON_DUTY',
+        phone: 'Ext 101',
+        specialties: ['Barrier Ingress/Egress', 'Sensor Triage', 'On-Site Escort'],
+        avatar: '👨‍💼',
+        initials: 'CR'
+      },
+      {
+        id: 'stf-002',
+        staff_id: 'CSD-102',
+        pin: '1234',
+        name: 'Elena Rostova',
+        role: 'Customer Care Desk Lead',
+        location: 'Central Command Counter',
+        status: 'ONLINE',
+        phone: 'Ext 102',
+        specialties: ['Billing & Tariff Disputes', 'App & QR Passes', 'ADA Reservations'],
+        avatar: '👩‍💼',
+        initials: 'ER'
+      },
+      {
+        id: 'stf-003',
+        staff_id: 'FLD-104',
+        pin: '1234',
+        name: 'Marcus Vance',
+        role: 'Field & EV Technician',
+        location: 'Floor 2 Mobile Roving',
+        status: 'ON_CALL',
+        phone: 'Ext 104',
+        specialties: ['EV Charging Cable Release', 'Hardware Diagnostics', 'Bay Lockouts'],
+        avatar: '👷‍♂️',
+        initials: 'MV'
+      },
+      {
+        id: 'stf-004',
+        staff_id: 'OPS-100',
+        pin: '1234',
+        name: 'Sarah Connor',
+        role: 'Duty Operations Manager',
+        location: 'Operations Office',
+        status: 'ONLINE',
+        phone: 'Ext 100',
+        specialties: ['Refund Authorization', 'Security Escalations', 'Facility Governance'],
+        avatar: '👩‍💻',
+        initials: 'SC'
+      }
+    ];
+
+    // Customer Service Active Auth Session (Customer vs Staff Operator mode)
+    this.active_session = {
+      is_authenticated: false,
+      account_type: 'CUSTOMER', // 'CUSTOMER' | 'STAFF'
+      user_id: 'usr-guest',
+      name: 'Guest Driver',
+      vehicle_plate: 'NY-8821',
+      role: 'DRIVER',
+      avatar: '🚗',
+      location: 'Ground Level'
+    };
+
+    // Real Active Customer Service Tickets Queue
+    this.support_tickets = [
+      {
+        ticket_id: 'CST-1042',
+        user_name: 'David Miller',
+        vehicle_plate: 'ABC-1234',
+        location: 'Gate North-1',
+        category: 'GATE_BARRIER',
+        priority: 'HIGH',
+        status: 'IN_PROGRESS',
+        assigned_to: 'Carlos Ramos (Head Attendant)',
+        subject: 'Exit barrier North-1 did not raise automatically',
+        description: 'Customer scanned QR pass at exit reader, barrier arm remained locked down.',
+        created_at: new Date(Date.now() - 900000).toISOString()
+      },
+      {
+        ticket_id: 'CST-1043',
+        user_name: 'Jessica Liu',
+        vehicle_plate: 'EV-8890',
+        location: 'Slot F2-03 (Floor 2)',
+        category: 'EV_CHARGER',
+        priority: 'MEDIUM',
+        status: 'DISPATCHED',
+        assigned_to: 'Marcus Vance (Field Tech)',
+        subject: 'EV Charger connector cable release assistance',
+        description: 'Charging complete at 22kW bay F2-03, vehicle coupler locked in connector socket.',
+        created_at: new Date(Date.now() - 1800000).toISOString()
+      },
+      {
+        ticket_id: 'CST-1044',
+        user_name: 'Alex Johnson',
+        vehicle_plate: 'NY-8821',
+        location: 'Floor 2 (Bay F2-04)',
+        category: 'BILLING_DISPUTE',
+        priority: 'NORMAL',
+        status: 'PENDING_REVIEW',
+        assigned_to: 'Sarah Connor (Duty Manager)',
+        subject: 'Overcharge review on Res #8812 - 15 min sensor delay',
+        description: 'Driver requested $5.00 refund due to sensor departure latency at Floor 2 gate.',
+        created_at: new Date(Date.now() - 3600000).toISOString()
+      }
+    ];
+
+    // Live Customer Service Conversation History
+    this.service_messages = [
+      {
+        id: 'csm-001',
+        sender: 'staff',
+        staff_name: 'Carlos Ramos',
+        staff_role: 'Head Parking Attendant',
+        location: 'Ground Booth B-1',
+        avatar: '👨‍💼',
+        text: '👋 Hello and welcome to Grand Central Parking Live Customer Service! My name is Carlos Ramos. I am on duty right now at the Ground Floor Attendant Booth. How may I assist you with parking bay locations, gate access, ticket validation, or refunds today?',
+        timestamp: new Date(Date.now() - 600000).toISOString(),
+        actions: ['Gate Intercom Available', 'Direct Radio Ext 101']
+      }
+    ];
+
     this.listeners = [];
+  }
+
+  addSupportMessage(message) {
+    this.service_messages.push(message);
+    this.notify('SUPPORT_MESSAGE_ADDED', message);
+    return message;
+  }
+
+  addSupportTicket(ticket) {
+    this.support_tickets.unshift(ticket);
+    this.notify('SUPPORT_TICKET_ADDED', ticket);
+    return ticket;
+  }
+
+  updateSupportTicket(ticket_id, updates) {
+    const ticket = this.support_tickets.find(t => t.ticket_id === ticket_id);
+    if (ticket) {
+      Object.assign(ticket, updates);
+      this.notify('SUPPORT_TICKET_UPDATED', ticket);
+    }
+    return ticket;
   }
 
   subscribe(callback) {
